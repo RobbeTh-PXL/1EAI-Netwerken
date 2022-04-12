@@ -112,6 +112,19 @@ int main( int argc, char * argv[] )
 	}
 //ClIENT SEND
 
+//ClIENT RECEIVE
+  int number_of_bytes_received = 0;
+  char buffer[1000];
+  number_of_bytes_received = recv(internet_socket, buffer, sizeof(buffer), 0);
+  if (number_of_bytes_received == -1) {
+    perror("recv");
+  }
+  else {
+    buffer[number_of_bytes_received] = '\0';
+    printf("Received: %s\n", buffer);
+  }
+//CLIENT RECEIVE
+
 //CLOSE CONNECTION & CLEANUP
 	int shutdown_return;
 	shutdown_return = shutdown( internet_socket, SD_SEND ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
