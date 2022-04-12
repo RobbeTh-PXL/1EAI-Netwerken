@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-//DISPLAYS CONNECTION/BIND INFO
+//DISPLAYS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip )
 {
 	void * ip_address;
@@ -29,10 +29,13 @@ void print_ip_address( struct addrinfo * ip )
 	inet_ntop( ip->ai_family, ip_address, ip_string, sizeof ip_string );
 	printf( "%s -> %s\n", ip_version, ip_string );
 }
-//DISPLAYS CONNECTION/BIND INFO
+//DISPLAYS CONNECTION INFO
 
 int main( int argc, char * argv[] )
 {
+  #define CONNECT_TO_IP "192.168.0.247"
+  #define CONNECT_TO_PORT "24042"
+
 //START SOCKET API
 	WSADATA wsaData; //WSAData wsaData; //Could be different case
 	if( WSAStartup( MAKEWORD(2,0), &wsaData ) != 0 ) // MAKEWORD(1,1) for Winsock 1.1, MAKEWORD(2,0) for Winsock 2.0:
@@ -50,7 +53,7 @@ int main( int argc, char * argv[] )
   internet_address_setup.ai_protocol = IPPROTO_TCP;
 
 	int getaddrinfo_return;
-	getaddrinfo_return = getaddrinfo( "localhost", "24042", &internet_address_setup, &result_head );
+	getaddrinfo_return = getaddrinfo( CONNECT_TO_IP, CONNECT_TO_PORT, &internet_address_setup, &result_head );
 	if( getaddrinfo_return != 0 )
 	{
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
@@ -96,7 +99,7 @@ int main( int argc, char * argv[] )
 	}
 	if( result_item == NULL )
 	{
-		fprintf( stderr, "socket: no valid socket address found\n" );
+		fprintf( stderr, "socket: no valid socket address found or could not connect!\n" );
 		exit( 4 );
 	}
 	freeaddrinfo( result_head ); //free the linked list
