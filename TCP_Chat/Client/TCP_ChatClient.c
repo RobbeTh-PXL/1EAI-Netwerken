@@ -1,3 +1,15 @@
+/* TODO
+--Ask user for server ip
+--Ask user for server port
+
+--Ask user for username
+
+--Add /exit flag to close the chat and connection
+
+--Send and receive at the same time
+*/
+
+
 #define _WIN32_WINNT 0x0601
 
 #include <winsock2.h>
@@ -33,7 +45,7 @@ void print_ip_address( struct addrinfo * ip )
 
 int main( int argc, char * argv[] )
 {
-  #define CONNECT_TO_IP "192.168.0.247"
+  #define CONNECT_TO_IP "localhost"
   #define CONNECT_TO_PORT "24042"
 
 //START SOCKET API
