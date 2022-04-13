@@ -6,6 +6,9 @@
 
 --Add /exit flag to close the chat and connection
 
+--Structure the messages: username,time,message
+--Decode the messages to correctly display in terminal
+
 --Send and receive at the same time
 */
 
