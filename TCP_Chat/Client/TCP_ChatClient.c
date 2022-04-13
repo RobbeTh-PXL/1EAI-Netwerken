@@ -1,8 +1,8 @@
 /* TODO
---Ask user for server ip
---Ask user for server port
+--Ask user for server ip      OK
+--Ask user for server port    OK
 
---Ask user for username
+--Ask user for username       OK
 
 --Add /exit flag to close the chat and connection
 
@@ -18,7 +18,9 @@
 
 #include <string.h>
 #include <stdio.h>
-#include<stdlib.h>
+#include <stdlib.h>
+
+#include <pthread.h> //Multi-Threading
 
 //DISPLAYS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip )
@@ -62,13 +64,13 @@ int main( int argc, char * argv[] )
   char server_port[5];
   char username[20];
 
-  printf("Enter The TCP_ChatServer IP[IPv4/IPv6]: ");
+  printf("Enter The TCP_ChatServer IP [IPv4/IPv6]: ");
   scanf("%s", server_ip);
 
-  printf("Enter The TCP_ChatServer PORT[1-99999]: ");
+  printf("Enter The TCP_ChatServer PORT [1-99999]: ");
   scanf("%s", server_port);
 
-  printf("Enter Your Username[""IPv4/IPv6""]: ");
+  printf("Enter Your Username [20]: ");
   scanf("%s", username);
 //ASK USER FOR SERVER IP, PORT AND USERNAME.
 
@@ -133,25 +135,24 @@ int main( int argc, char * argv[] )
 //CONNECT TO TARGET (internet_address_setup)
 
 //ClIENT SEND
-	int number_of_bytes_send = 0;
-	number_of_bytes_send = send( internet_socket, username, strlen(username), 0 );
-	if( number_of_bytes_send == -1 )
-	{
-		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
-		perror( "send" );
-	}
+  int number_of_bytes_send = 0;
+  number_of_bytes_send = send( internet_socket, username, strlen(username), 0 );
+  if( number_of_bytes_send == -1 ) {
+    printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
+    perror( "send" );
+  }
 //ClIENT SEND
 
 //ClIENT RECEIVE
   int number_of_bytes_received = 0;
-  char buffer[1000];
-  number_of_bytes_received = recv(internet_socket, buffer, sizeof(buffer), 0);
+  char recv_buffer[1000];
+  number_of_bytes_received = recv(internet_socket, recv_buffer, sizeof(recv_buffer), 0);
   if (number_of_bytes_received == -1) {
     perror("recv");
   }
   else {
-    buffer[number_of_bytes_received] = '\0';
-    printf("Received: %s\n", buffer);
+    recv_buffer[number_of_bytes_received] = '\0';
+    printf("Received: %s\n", recv_buffer);
   }
 //CLIENT RECEIVE
 
