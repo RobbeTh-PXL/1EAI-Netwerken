@@ -14,9 +14,11 @@
 
 #include <winsock2.h>
 #include <ws2tcpip.h>
-
-#include <stdio.h>
 #include <unistd.h>
+
+#include <string.h>
+#include <stdio.h>
+#include<stdlib.h>
 
 //DISPLAYS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip )
@@ -45,8 +47,6 @@ void print_ip_address( struct addrinfo * ip )
 
 int main( int argc, char * argv[] )
 {
-  #define CONNECT_TO_IP "localhost"
-  #define CONNECT_TO_PORT "24042"
 
 //START SOCKET API
 	WSADATA wsaData; //WSAData wsaData; //Could be different case
@@ -57,6 +57,21 @@ int main( int argc, char * argv[] )
 	}
 //START SOCKET API
 
+//ASK USER FOR SERVER IP, PORT AND USERNAME.
+  char server_ip[45];
+  char server_port[5];
+  char username[20];
+
+  printf("Enter The TCP_ChatServer IP[IPv4/IPv6]: ");
+  scanf("%s", server_ip);
+
+  printf("Enter The TCP_ChatServer PORT[1-99999]: ");
+  scanf("%s", server_port);
+
+  printf("Enter Your Username[""IPv4/IPv6""]: ");
+  scanf("%s", username);
+//ASK USER FOR SERVER IP, PORT AND USERNAME.
+
 //SET CONNECT TO IP, IP-VERSION,  PORT, PROTOCOL
 	struct addrinfo internet_address_setup, *result_head, *result_item;
 	memset( &internet_address_setup, 0, sizeof internet_address_setup );
@@ -65,7 +80,7 @@ int main( int argc, char * argv[] )
   internet_address_setup.ai_protocol = IPPROTO_TCP;
 
 	int getaddrinfo_return;
-	getaddrinfo_return = getaddrinfo( CONNECT_TO_IP, CONNECT_TO_PORT, &internet_address_setup, &result_head );
+	getaddrinfo_return = getaddrinfo( server_ip, server_port, &internet_address_setup, &result_head );
 	if( getaddrinfo_return != 0 )
 	{
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
@@ -119,7 +134,7 @@ int main( int argc, char * argv[] )
 
 //ClIENT SEND
 	int number_of_bytes_send = 0;
-	number_of_bytes_send = send( internet_socket, "Hello TCP world!", 16, 0 );
+	number_of_bytes_send = send( internet_socket, username, strlen(username), 0 );
 	if( number_of_bytes_send == -1 )
 	{
 		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
