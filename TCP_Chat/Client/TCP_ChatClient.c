@@ -55,7 +55,7 @@ void print_ip_address( struct addrinfo * ip )
 //RECEIVE MSG THREAD
 void *client_recv (void *socket) {
 	int internet_socket = (intptr_t) socket;
-//ClIENT RECEIVE
+	//ClIENT RECEIVE
 	int number_of_bytes_received = 0;
 	char recv_buffer[1000];
 	while (1) {
@@ -68,7 +68,7 @@ void *client_recv (void *socket) {
 			printf("Received: %s\n", recv_buffer);
 			number_of_bytes_received = 0;
 		}
-		//CLIENT RECEIVE
+	//CLIENT RECEIVE
 	}
 	pthread_exit(NULL);
 }
@@ -129,7 +129,7 @@ printf("//Starting API...\n");
 //CONNECT TO TARGET (internet_address_setup)
 	int internet_socket;
 
-	printf("\n//Establishing Connection..\n");
+	printf("\n//Establishing Connection...\n");
 
 	result_item = result_head; //take first of the linked list
 	while( result_item != NULL ) //while the pointer is valid
@@ -154,6 +154,7 @@ printf("//Starting API...\n");
 			else
 			{
 				printf( "//Connection Established\n");
+				printf("\nUse /help to view all commands\n");
 				break; //stop running through the linked list
 			}
 		}
@@ -184,8 +185,6 @@ printf("//Starting API...\n");
 //CLOSE CONNECTION & CLEANUP
 	int shutdown_return;
 	printf("\n--//Shutting Down Client\\\\--\n");
-	printf("//Stopping Threads...\n");
-	pthread_cancel(trd1); //Close the thread
 	printf("//Stopping Comms...\n");
 	shutdown_return = shutdown( internet_socket, SD_SEND ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
 	if( shutdown_return == -1 )
@@ -196,6 +195,9 @@ printf("//Starting API...\n");
 
 	printf("//Closing Comms...\n");
 	close( internet_socket );
+
+	printf("//Stopping Threads...\n");
+	pthread_cancel(trd1); //Close the thread
 
 	printf("//Stopping API...\n");
 	WSACleanup();
