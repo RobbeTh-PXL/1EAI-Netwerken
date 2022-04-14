@@ -1,12 +1,16 @@
 /* TODO
 --Ask user for server ip      OK
---Ask user for server port    OK
+--Ask user for server port		OK
 
 --Ask user for username       OK
+--Check if username is already taken
 
 --Add /exit flag to close the chat and connection
+-- Add other flags
 
---Send and receive at the same time
+--Structure the messages: time, username, message
+
+--Send and receive at the same time		OK
 */
 
 
@@ -20,11 +24,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <pthread.h> //Multi-Threading
+#include <pthread.h>
+
+#include<conio.h> //Clear terminal (clrscr();)
+
+int thread_stop = 0; //flag for breaking continuous loop in threads, allowing them to exit
 
 //DISPLAYS CONNECTION INFO
-void print_ip_address( struct addrinfo * ip )
-{
+void print_ip_address( struct addrinfo * ip ) {
 	void * ip_address;
 	char * ip_version;
 	char ip_string[INET6_ADDRSTRLEN];
@@ -47,10 +54,37 @@ void print_ip_address( struct addrinfo * ip )
 }
 //DISPLAYS CONNECTION INFO
 
+//RECEIVE MSG THREAD
+void *client_recv (void *socket) {
+	int internet_socket = (intptr_t) socket;
+
+	//ClIENT RECEIVE
+	int number_of_bytes_received = 0;
+	char recv_buffer[1000];
+
+	while (thread_stop == 0) {
+		number_of_bytes_received = recv(internet_socket, recv_buffer, sizeof(recv_buffer), 0);
+		if (number_of_bytes_received == -1) {
+			perror("recv");
+		}
+		if (number_of_bytes_received > 0) {
+			recv_buffer[number_of_bytes_received] = '\0';
+			printf("Received: %s\n", recv_buffer);
+			number_of_bytes_received = 0;
+		}
+	//CLIENT RECEIVE
+	}
+	return NULL;
+	pthread_exit(NULL);
+}
+//RECEIVE MSG THREAD
+
 int main( int argc, char * argv[] )
 {
+printf("--//TCP Chat Client\\\\--\n");
 
 //START SOCKET API
+printf("//Starting API...\n");
 	WSADATA wsaData; //WSAData wsaData; //Could be different case
 	if( WSAStartup( MAKEWORD(2,0), &wsaData ) != 0 ) // MAKEWORD(1,1) for Winsock 1.1, MAKEWORD(2,0) for Winsock 2.0:
 	{
@@ -64,13 +98,15 @@ int main( int argc, char * argv[] )
   char server_port[5];
   char username[20];
 
-  printf("Enter The TCP_ChatServer IP [IPv4/IPv6]: ");
+	printf("\n--Connection Settings--\n");
+
+  printf("TCP_ChatServer IP [IPv4/IPv6]: ");
   scanf("%s", server_ip);
 
-  printf("Enter The TCP_ChatServer PORT [1-99999]: ");
+  printf("TCP_ChatServer PORT [1-99999]: ");
   scanf("%s", server_port);
 
-  printf("Enter Your Username [20]: ");
+  printf("Your Username [20]: ");
   scanf("%s", username);
 //ASK USER FOR SERVER IP, PORT AND USERNAME.
 
@@ -98,6 +134,8 @@ int main( int argc, char * argv[] )
 //CONNECT TO TARGET (internet_address_setup)
 	int internet_socket;
 
+	printf("\n//Establishing Connection...\n");
+
 	result_item = result_head; //take first of the linked list
 	while( result_item != NULL ) //while the pointer is valid
 	{
@@ -120,7 +158,7 @@ int main( int argc, char * argv[] )
 			}
 			else
 			{
-				printf( "Connected\n" );
+				printf( "//Connection Established\n");
 				break; //stop running through the linked list
 			}
 		}
@@ -134,30 +172,27 @@ int main( int argc, char * argv[] )
 	freeaddrinfo( result_head ); //free the linked list
 //CONNECT TO TARGET (internet_address_setup)
 
-//ClIENT SEND
+//CREATE THREAD RECEIVE MSG
+	pthread_t thread_recv; //
+	pthread_create(&thread_recv, NULL, client_recv, (void *) (intptr_t) internet_socket);
+//CREATE THREAD RECEIVE MSG
+
+//SEND MSG
   int number_of_bytes_send = 0;
   number_of_bytes_send = send( internet_socket, username, strlen(username), 0 );
   if( number_of_bytes_send == -1 ) {
     printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
     perror( "send" );
   }
-//ClIENT SEND
-
-//ClIENT RECEIVE
-  int number_of_bytes_received = 0;
-  char recv_buffer[1000];
-  number_of_bytes_received = recv(internet_socket, recv_buffer, sizeof(recv_buffer), 0);
-  if (number_of_bytes_received == -1) {
-    perror("recv");
-  }
-  else {
-    recv_buffer[number_of_bytes_received] = '\0';
-    printf("Received: %s\n", recv_buffer);
-  }
-//CLIENT RECEIVE
+//SEND MSG
 
 //CLOSE CONNECTION & CLEANUP
 	int shutdown_return;
+	printf("\n--//Shutting Down Client\\\\--\n");
+
+	thread_stop = 1; //flag for breaking continuous loop in threads, allowing them to exit
+
+	printf("//Stopping Comms...\n");
 	shutdown_return = shutdown( internet_socket, SD_SEND ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
 	if( shutdown_return == -1 )
 	{
@@ -165,9 +200,16 @@ int main( int argc, char * argv[] )
 		perror( "shutdown" );
 	}
 
+	printf("//Closing Socket...\n");
 	close( internet_socket );
 
+	printf("//Stopping Threads...\n");
+	pthread_join(thread_recv, NULL); //Check if thread is stopped by joining it.
+
+	printf("//Stopping API...\n");
 	WSACleanup();
+
+	printf("--//Shutdown Complete\\\\--\n");
 //CLOSE CONNECTION & CLEANUP
 
 	return 0;
