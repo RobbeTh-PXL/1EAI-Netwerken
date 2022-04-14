@@ -1,13 +1,14 @@
 /* TODO
 --Ask user for server ip      OK
---Ask user for server port    OK
+--Ask user for server port		OK
 
 --Ask user for username       OK
+--Check if username is already taken
 
 --Add /exit flag to close the chat and connection
+-- Add other flags
 
---Structure the messages: username,time,message
---Decode the messages to correctly display in terminal
+--Structure the messages: time, username, message
 
 --Send and receive at the same time		OK
 */
@@ -23,15 +24,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <pthread.h> //Multi-Threading
+#include <pthread.h>
 
 #include<conio.h> //Clear terminal (clrscr();)
 
 int thread_stop = 0; //flag for breaking continuous loop in threads, allowing them to exit
 
 //DISPLAYS CONNECTION INFO
-void print_ip_address( struct addrinfo * ip )
-{
+void print_ip_address( struct addrinfo * ip ) {
 	void * ip_address;
 	char * ip_version;
 	char ip_string[INET6_ADDRSTRLEN];
@@ -159,7 +159,6 @@ printf("//Starting API...\n");
 			else
 			{
 				printf( "//Connection Established\n");
-				printf("\nUse /help to view all commands\n");
 				break; //stop running through the linked list
 			}
 		}
@@ -178,14 +177,14 @@ printf("//Starting API...\n");
 	pthread_create(&thread_recv, NULL, client_recv, (void *) (intptr_t) internet_socket);
 //CREATE THREAD RECEIVE MSG
 
-//ClIENT SEND
+//SEND MSG
   int number_of_bytes_send = 0;
   number_of_bytes_send = send( internet_socket, username, strlen(username), 0 );
   if( number_of_bytes_send == -1 ) {
     printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
     perror( "send" );
   }
-//ClIENT SEND
+//SEND MSG
 
 //CLOSE CONNECTION & CLEANUP
 	int shutdown_return;
