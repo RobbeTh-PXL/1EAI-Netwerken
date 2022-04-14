@@ -9,7 +9,7 @@
 --Structure the messages: username,time,message
 --Decode the messages to correctly display in terminal
 
---Send and receive at the same time
+--Send and receive at the same time		OK
 */
 
 
@@ -59,7 +59,7 @@ void *client_recv (void *socket) {
 	while (1) {
 		number_of_bytes_received = recv(internet_socket, recv_buffer, sizeof(recv_buffer), 0);
 		if (number_of_bytes_received == -1) {
-			perror("recv");
+			//perror("recv");
 		}
 		if (number_of_bytes_received > 0) {
 			recv_buffer[number_of_bytes_received] = '\0';
@@ -68,7 +68,7 @@ void *client_recv (void *socket) {
 		}
 		//CLIENT RECEIVE
 	}
-	return 0;
+	pthread_exit(NULL);
 }
 //RECEIVE MSG THREAD
 
@@ -172,11 +172,13 @@ int main( int argc, char * argv[] )
     perror( "send" );
   }
 //ClIENT SEND
-	fflush(stdin);
-	getchar();
+
 //CLOSE CONNECTION & CLEANUP
 	int shutdown_return;
+	printf("--//Shutting Down Client\\\\--\n");
+	printf("//Stopping Threads...\n");
 	pthread_cancel(trd1); //Close the thread
+	printf("//Stopping Comms...\n");
 	shutdown_return = shutdown( internet_socket, SD_SEND ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
 	if( shutdown_return == -1 )
 	{
@@ -184,9 +186,13 @@ int main( int argc, char * argv[] )
 		perror( "shutdown" );
 	}
 
+	printf("//Closing Comms...\n");
 	close( internet_socket );
 
+	printf("//Stopping API...\n");
 	WSACleanup();
+
+	printf("--//Shutdown Complete\\\\--\n");
 //CLOSE CONNECTION & CLEANUP
 
 	return 0;
