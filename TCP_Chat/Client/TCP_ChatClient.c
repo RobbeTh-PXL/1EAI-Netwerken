@@ -27,6 +27,8 @@
 
 #include<conio.h> //Clear terminal (clrscr();)
 
+int thread_stop = 0; //flag for breaking continuous loop in threads, allowing them to exit
+
 //DISPLAYS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip )
 {
@@ -55,10 +57,12 @@ void print_ip_address( struct addrinfo * ip )
 //RECEIVE MSG THREAD
 void *client_recv (void *socket) {
 	int internet_socket = (intptr_t) socket;
+
 	//ClIENT RECEIVE
 	int number_of_bytes_received = 0;
 	char recv_buffer[1000];
-	while (1) {
+
+	while (thread_stop == 0) {
 		number_of_bytes_received = recv(internet_socket, recv_buffer, sizeof(recv_buffer), 0);
 		if (number_of_bytes_received == -1) {
 			perror("recv");
@@ -70,6 +74,7 @@ void *client_recv (void *socket) {
 		}
 	//CLIENT RECEIVE
 	}
+	return NULL;
 	pthread_exit(NULL);
 }
 //RECEIVE MSG THREAD
@@ -169,8 +174,8 @@ printf("//Starting API...\n");
 //CONNECT TO TARGET (internet_address_setup)
 
 //CREATE THREAD RECEIVE MSG
-	pthread_t trd1; //
-	pthread_create(&trd1, NULL, client_recv, (void *) (intptr_t) internet_socket);
+	pthread_t thread_recv; //
+	pthread_create(&thread_recv, NULL, client_recv, (void *) (intptr_t) internet_socket);
 //CREATE THREAD RECEIVE MSG
 
 //ClIENT SEND
@@ -185,6 +190,9 @@ printf("//Starting API...\n");
 //CLOSE CONNECTION & CLEANUP
 	int shutdown_return;
 	printf("\n--//Shutting Down Client\\\\--\n");
+
+	thread_stop = 1; //flag for breaking continuous loop in threads, allowing them to exit
+
 	printf("//Stopping Comms...\n");
 	shutdown_return = shutdown( internet_socket, SD_SEND ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
 	if( shutdown_return == -1 )
@@ -193,11 +201,11 @@ printf("//Starting API...\n");
 		perror( "shutdown" );
 	}
 
-	printf("//Closing Comms...\n");
+	printf("//Closing Socket...\n");
 	close( internet_socket );
 
 	printf("//Stopping Threads...\n");
-	pthread_cancel(trd1); //Close the thread
+	pthread_join(thread_recv, NULL); //Check if thread is stopped by joining it.
 
 	printf("//Stopping API...\n");
 	WSACleanup();
