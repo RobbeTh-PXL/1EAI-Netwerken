@@ -25,6 +25,8 @@
 
 #include <pthread.h> //Multi-Threading
 
+#include<conio.h> //Clear terminal (clrscr();)
+
 //DISPLAYS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip )
 {
@@ -59,7 +61,7 @@ void *client_recv (void *socket) {
 	while (1) {
 		number_of_bytes_received = recv(internet_socket, recv_buffer, sizeof(recv_buffer), 0);
 		if (number_of_bytes_received == -1) {
-			//perror("recv");
+			perror("recv");
 		}
 		if (number_of_bytes_received > 0) {
 			recv_buffer[number_of_bytes_received] = '\0';
@@ -74,8 +76,10 @@ void *client_recv (void *socket) {
 
 int main( int argc, char * argv[] )
 {
+printf("--//TCP Chat Client\\\\--\n");
 
 //START SOCKET API
+printf("//Starting API...\n");
 	WSADATA wsaData; //WSAData wsaData; //Could be different case
 	if( WSAStartup( MAKEWORD(2,0), &wsaData ) != 0 ) // MAKEWORD(1,1) for Winsock 1.1, MAKEWORD(2,0) for Winsock 2.0:
 	{
@@ -89,13 +93,15 @@ int main( int argc, char * argv[] )
   char server_port[5];
   char username[20];
 
-  printf("Enter The TCP_ChatServer IP [IPv4/IPv6]: ");
+	printf("\n--Connection Settings--\n");
+
+  printf("TCP_ChatServer IP [IPv4/IPv6]: ");
   scanf("%s", server_ip);
 
-  printf("Enter The TCP_ChatServer PORT [1-99999]: ");
+  printf("TCP_ChatServer PORT [1-99999]: ");
   scanf("%s", server_port);
 
-  printf("Enter Your Username [20]: ");
+  printf("Your Username [20]: ");
   scanf("%s", username);
 //ASK USER FOR SERVER IP, PORT AND USERNAME.
 
@@ -123,6 +129,8 @@ int main( int argc, char * argv[] )
 //CONNECT TO TARGET (internet_address_setup)
 	int internet_socket;
 
+	printf("\n//Establishing Connection..\n");
+
 	result_item = result_head; //take first of the linked list
 	while( result_item != NULL ) //while the pointer is valid
 	{
@@ -145,7 +153,7 @@ int main( int argc, char * argv[] )
 			}
 			else
 			{
-				printf( "Connected\n" );
+				printf( "//Connection Established\n");
 				break; //stop running through the linked list
 			}
 		}
@@ -175,7 +183,7 @@ int main( int argc, char * argv[] )
 
 //CLOSE CONNECTION & CLEANUP
 	int shutdown_return;
-	printf("--//Shutting Down Client\\\\--\n");
+	printf("\n--//Shutting Down Client\\\\--\n");
 	printf("//Stopping Threads...\n");
 	pthread_cancel(trd1); //Close the thread
 	printf("//Stopping Comms...\n");
