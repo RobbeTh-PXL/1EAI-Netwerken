@@ -23,10 +23,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <pthread.h>
-
-#include<conio.h> //Clear terminal (clrscr();)
 
 int thread_stop = 0; //flag for breaking continuous loop in threads, allowing them to exit
 
@@ -78,6 +77,21 @@ void *client_recv (void *socket) {
 	return NULL; //To make compiler happy
 }
 //RECEIVE MSG THREAD
+
+//COMPOSE MSG
+void msg_compose(char *username, char *interf_input, char *send_buffer) {
+	//TIME
+	time_t seconds;
+  struct tm *timeStruct;
+
+  seconds = time(NULL);
+
+  timeStruct = localtime(&seconds);
+	//TIME
+
+	sprintf(send_buffer, "[%d:%d] %s: %s\n", timeStruct->tm_hour, timeStruct->tm_min, username, interf_input);
+}
+//COMPOSE MSG
 
 int main( int argc, char * argv[] )
 {
@@ -137,8 +151,7 @@ printf("//Starting API...\n");
 	printf("\n//Establishing Connection...\n");
 
 	result_item = result_head; //take first of the linked list
-	while( result_item != NULL ) //while the pointer is valid
-	{
+	while( result_item != NULL ) { //while the pointer is valid
 		internet_socket = socket( result_item->ai_family, result_item->ai_socktype, result_item->ai_protocol );
 		if( internet_socket == -1 )
 		{
@@ -179,28 +192,31 @@ printf("//Starting API...\n");
 
 //CHAT USER INTERFACE
 	int number_of_bytes_send = 0;
-	char chat_input[1000] = "\0";
+	char interf_input[1000] = "\0";
+	char send_buffer[1030];
 
 	while (1) {
-		scanf("%s", chat_input);
-		if (strcmp(chat_input, "/help") == 0) {
+		printf("> ");
+		scanf("%s", interf_input);
+		if (strcmp(interf_input, "/help") == 0) {
 			printf("This is help\n");
-			strcpy(chat_input, "\0");
+			strcpy(interf_input, "\0");
 		}
 
-		if (strcmp(chat_input, "/exit") == 0) {
+		if (strcmp(interf_input, "/exit") == 0) {
 			break;
 		}
 
-		if (strlen(chat_input) > 0) {
+		if (strlen(interf_input) > 0) {
 		//SEND MSG
-			number_of_bytes_send = send( internet_socket, chat_input, strlen(chat_input), 0 );
+			msg_compose(username, interf_input, send_buffer);
+			number_of_bytes_send = send( internet_socket, send_buffer, strlen(send_buffer), 0 );
 			if( number_of_bytes_send == -1 ) {
 		   printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
 		   perror( "send" );
 	  	}
 		//SEND MSG
-		strcpy(chat_input, "\0");
+		strcpy(interf_input, "\0");
 		}
 	}
 //CHAT USER INTERFACE
