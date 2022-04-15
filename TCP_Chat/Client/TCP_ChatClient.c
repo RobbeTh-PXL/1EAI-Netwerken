@@ -202,8 +202,6 @@ printf("//Starting API...\n");
 	char interf_input[1000] = "\0";
 	char send_buffer[1030];
 
-	printf("Use /help to see all commands\n");
-	
 	while (1) {
 		printf("> ");
 		fflush(stdin);
