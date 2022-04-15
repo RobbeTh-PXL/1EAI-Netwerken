@@ -66,9 +66,13 @@ void *client_recv (void *socket) {
 		if (number_of_bytes_received == -1) {
 			perror("recv");
 		}
-		if (number_of_bytes_received > 0) {
+		if (number_of_bytes_received > 4) { //Message for user
 			recv_buffer[number_of_bytes_received] = '\0';
 			printf("%s\n> ", recv_buffer);
+			number_of_bytes_received = 0;
+		}
+		if (number_of_bytes_received == 4) { //Message for system
+			recv_buffer[number_of_bytes_received] = '\0';
 			number_of_bytes_received = 0;
 		}
 	//RECEIVE MSG
