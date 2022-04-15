@@ -27,7 +27,9 @@
 
 #include <pthread.h>
 
-int thread_stop = 0; //flag for breaking continuous loop in threads, allowing them to exit
+int thread_stop = 0; //Flag for breaking continuous loop in threads, allowing them to exit
+int number_of_bytes_received = 0; //For system messages
+char recv_buffer[1000]; //For system messages
 
 //DISPLAYS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip ) {
@@ -58,9 +60,6 @@ void *client_recv (void *socket) {
 	int internet_socket = (intptr_t) socket;
 
 	//RECEIVE MSG
-	int number_of_bytes_received = 0;
-	char recv_buffer[1000];
-
 	while (thread_stop == 0) {
 		number_of_bytes_received = recv(internet_socket, recv_buffer, sizeof(recv_buffer), 0);
 		if (number_of_bytes_received == -1) {
@@ -71,7 +70,7 @@ void *client_recv (void *socket) {
 			printf("%s\n> ", recv_buffer);
 			number_of_bytes_received = 0;
 		}
-		if (number_of_bytes_received == 4) { //Message for system
+		if (number_of_bytes_received <= 4) { //Message for system
 			recv_buffer[number_of_bytes_received] = '\0';
 			number_of_bytes_received = 0;
 		}
@@ -81,6 +80,18 @@ void *client_recv (void *socket) {
 	return NULL; //To make compiler happy
 }
 //RECEIVE MSG THREAD
+
+//SEND MSG
+void client_send(int internet_socket, char *data) {
+	int number_of_bytes_send = 0;
+
+	number_of_bytes_send = send( internet_socket, data, strlen(data), 0 );
+	if( number_of_bytes_send == -1 ) {
+		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
+		perror( "send" );
+	}
+}
+//SEND MSG
 
 //COMPOSE MSG
 void msg_compose(char *username, char *interf_input, char *send_buffer) {
@@ -118,10 +129,9 @@ printf("//Starting API...\n");
 	}
 //START SOCKET API
 
-//ASK USER FOR SERVER IP, PORT AND USERNAME.
+//ASK USER FOR SERVER IP, PORT
   char server_ip[45];
   char server_port[5];
-  char username[20];
 
 	printf("\n--Connection Settings--\n");
 
@@ -130,10 +140,7 @@ printf("//Starting API...\n");
 
   printf("TCP_ChatServer PORT [1-99999]: ");
   scanf("%s", server_port);
-
-  printf("Your Username [20]: ");
-  scanf("%s", username);
-//ASK USER FOR SERVER IP, PORT AND USERNAME.
+//ASK USER FOR SERVER IP, PORT
 
 //SET CONNECT TO IP, IP-VERSION,  PORT, PROTOCOL
 	struct addrinfo internet_address_setup, *result_head, *result_item;
@@ -203,8 +210,36 @@ printf("//Starting API...\n");
 	}
 //CREATE THREAD RECEIVE MSG
 
+//ASK USERNAME
+	char username[20];
+
+	printf("Enter A Username [20]: ");
+	scanf("%s", username);
+//ASK USERNAME
+
+//VALIDATE USERNAME
+	printf("//Validating Username...\n");
+	client_send(internet_socket, username);
+
+	while (1) {
+		if (number_of_bytes_received <= 4) {
+			if (strcmp(recv_buffer, "0\r") == 0) {
+				printf("\n");
+				break;
+			}
+			if (strcmp(recv_buffer, "1\r") == 0) {
+				strcpy(recv_buffer, "\0"); //While loop is faster than client_send writing to recv_buffer (val stays 1\r) -> infinite loop in this if statement
+				printf("//Username already in use!\n");
+				printf("New username: ");
+				scanf("%s", username);
+				printf("//Validating Username...\n");
+				client_send(internet_socket, username);
+			}
+		}
+	}
+//VALIDATE USERNAME
+
 //CHAT USER INTERFACE
-	int number_of_bytes_send = 0;
 	char interf_input[1000] = "\0";
 	char send_buffer[1030];
 
@@ -222,14 +257,8 @@ printf("//Starting API...\n");
 		}
 
 		if (strlen(interf_input) > 0) {
-		//SEND MSG
 			msg_compose(username, interf_input, send_buffer);
-			number_of_bytes_send = send( internet_socket, send_buffer, strlen(send_buffer), 0 );
-			if( number_of_bytes_send == -1 ) {
-		   printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
-		   perror( "send" );
-	  	}
-		//SEND MSG
+			client_send(internet_socket, send_buffer);
 		strcpy(interf_input, "\0");
 		}
 	}
