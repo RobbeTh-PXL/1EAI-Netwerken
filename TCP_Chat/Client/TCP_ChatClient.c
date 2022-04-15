@@ -68,7 +68,7 @@ void *client_recv (void *socket) {
 		}
 		if (number_of_bytes_received > 0) {
 			recv_buffer[number_of_bytes_received] = '\0';
-			printf("Received: %s\n", recv_buffer);
+			printf("%s\n> ", recv_buffer);
 			number_of_bytes_received = 0;
 		}
 	//RECEIVE MSG
@@ -194,7 +194,9 @@ printf("//Starting API...\n");
 
 //CREATE THREAD RECEIVE MSG
 	pthread_t thread_recv; //
-	pthread_create(&thread_recv, NULL, client_recv, (void *) (intptr_t) internet_socket);
+	if (pthread_create(&thread_recv, NULL, client_recv, (void *) (intptr_t) internet_socket) != 0) {
+		perror("Error Creating thread");
+	}
 //CREATE THREAD RECEIVE MSG
 
 //CHAT USER INTERFACE
