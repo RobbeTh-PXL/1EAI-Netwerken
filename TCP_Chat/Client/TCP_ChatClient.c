@@ -74,8 +74,8 @@ void *client_recv (void *socket) {
 		}
 	//CLIENT RECEIVE
 	}
-	return NULL;
 	pthread_exit(NULL);
+	return NULL; //To make compiler happy
 }
 //RECEIVE MSG THREAD
 
@@ -177,14 +177,34 @@ printf("//Starting API...\n");
 	pthread_create(&thread_recv, NULL, client_recv, (void *) (intptr_t) internet_socket);
 //CREATE THREAD RECEIVE MSG
 
-//SEND MSG
-  int number_of_bytes_send = 0;
-  number_of_bytes_send = send( internet_socket, username, strlen(username), 0 );
-  if( number_of_bytes_send == -1 ) {
-    printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
-    perror( "send" );
-  }
-//SEND MSG
+	int number_of_bytes_send = 0;
+
+	char user_input[1000] = "\0";
+
+//CHAT INTERFACE
+	while (1) {
+		scanf("%s", user_input);
+		if (strcmp(user_input, "/help") == 0) {
+			printf("This is help\n");
+			strcpy(user_input, "\0");
+		}
+
+		if (strcmp(user_input, "/exit") == 0) {
+			break;
+		}
+
+		if (strlen(user_input) > 0) {
+			//SEND MSG
+			  number_of_bytes_send = send( internet_socket, user_input, strlen(user_input), 0 );
+			  if( number_of_bytes_send == -1 ) {
+			    printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
+			    perror( "send" );
+			  }
+			//SEND MSG
+			strcpy(user_input, "\0");
+		}
+	}
+//CHAT INTERFACE
 
 //CLOSE CONNECTION & CLEANUP
 	int shutdown_return;
