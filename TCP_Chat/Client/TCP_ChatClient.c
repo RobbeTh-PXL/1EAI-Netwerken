@@ -8,7 +8,7 @@
 --Add /exit flag to close the chat and connection
 -- Add other flags
 
---Structure the messages: time, username, message
+--Structure the messages: time, username, message		OK
 
 --Send and receive at the same time		OK
 */
@@ -197,7 +197,8 @@ printf("//Starting API...\n");
 
 	while (1) {
 		printf("> ");
-		scanf("%s", interf_input);
+		fflush(stdin);
+		gets(interf_input);
 		if (strcmp(interf_input, "/help") == 0) {
 			printf("This is help\n");
 			strcpy(interf_input, "\0");
