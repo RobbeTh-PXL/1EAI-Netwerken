@@ -5,8 +5,8 @@
 --Ask user for username       OK
 --Check if username is already taken
 
---Add /exit flag to close the chat and connection
--- Add other flags
+--Add /exit flag to close the chat and connection		OK
+-- Add other flags																	OK
 
 --Structure the messages: time, username, message		OK
 
@@ -93,6 +93,13 @@ void msg_compose(char *username, char *interf_input, char *send_buffer) {
 }
 //COMPOSE MSG
 
+void help_menu() {
+	printf("\n--Help Menu--\n");
+	printf("Commands:\n");
+	printf("/help \t -- \t Shows this menu\n");
+	printf("/exit \t -- \t Closes the chat and application\n\n");
+}
+
 int main( int argc, char * argv[] )
 {
 printf("--//TCP Chat Client\\\\--\n");
@@ -171,7 +178,7 @@ printf("//Starting API...\n");
 			}
 			else
 			{
-				printf( "//Connection Established\n");
+				printf( "//Connection Established\n\n");
 				break; //stop running through the linked list
 			}
 		}
@@ -195,12 +202,14 @@ printf("//Starting API...\n");
 	char interf_input[1000] = "\0";
 	char send_buffer[1030];
 
+	printf("Use /help to see all commands\n");
+	
 	while (1) {
 		printf("> ");
 		fflush(stdin);
 		gets(interf_input);
 		if (strcmp(interf_input, "/help") == 0) {
-			printf("This is help\n");
+			help_menu();
 			strcpy(interf_input, "\0");
 		}
 
