@@ -5,10 +5,10 @@
 --Ask user for username       OK
 --Check if username is already taken
 
---Add /exit flag to close the chat and connection
--- Add other flags
+--Add /exit flag to close the chat and connection		OK
+-- Add other flags																	OK
 
---Structure the messages: time, username, message
+--Structure the messages: time, username, message		OK
 
 --Send and receive at the same time		OK
 */
@@ -23,12 +23,13 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include <pthread.h>
 
-#include<conio.h> //Clear terminal (clrscr();)
-
-int thread_stop = 0; //flag for breaking continuous loop in threads, allowing them to exit
+int thread_stop = 0; //Flag for breaking continuous loop in threads, allowing them to exit
+int number_of_bytes_received = 0; //For system messages
+char recv_buffer[1000]; //For system messages
 
 //DISPLAYS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip ) {
@@ -58,26 +59,61 @@ void print_ip_address( struct addrinfo * ip ) {
 void *client_recv (void *socket) {
 	int internet_socket = (intptr_t) socket;
 
-	//ClIENT RECEIVE
-	int number_of_bytes_received = 0;
-	char recv_buffer[1000];
-
+	//RECEIVE MSG
 	while (thread_stop == 0) {
 		number_of_bytes_received = recv(internet_socket, recv_buffer, sizeof(recv_buffer), 0);
 		if (number_of_bytes_received == -1) {
 			perror("recv");
 		}
-		if (number_of_bytes_received > 0) {
+		if (number_of_bytes_received > 4) { //Message for user
 			recv_buffer[number_of_bytes_received] = '\0';
-			printf("Received: %s\n", recv_buffer);
+			printf("%s\n> ", recv_buffer);
 			number_of_bytes_received = 0;
 		}
-	//CLIENT RECEIVE
+		if (number_of_bytes_received <= 4) { //Message for system
+			recv_buffer[number_of_bytes_received] = '\0';
+			number_of_bytes_received = 0;
+		}
+	//RECEIVE MSG
 	}
-	return NULL;
 	pthread_exit(NULL);
+	return NULL; //To make compiler happy
 }
 //RECEIVE MSG THREAD
+
+//SEND MSG
+void client_send(int internet_socket, char *data) {
+	int number_of_bytes_send = 0;
+
+	number_of_bytes_send = send( internet_socket, data, strlen(data), 0 );
+	if( number_of_bytes_send == -1 ) {
+		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
+		perror( "send" );
+	}
+}
+//SEND MSG
+
+//COMPOSE MSG
+void msg_compose(char *username, char *interf_input, char *send_buffer) {
+	//TIME
+	time_t seconds;
+  struct tm *timeStruct;
+
+  seconds = time(NULL);
+
+  timeStruct = localtime(&seconds);
+	//TIME
+
+	sprintf(send_buffer, "[%d:%d] %s: %s\n", timeStruct->tm_hour, timeStruct->tm_min, username, interf_input);
+}
+//COMPOSE MSG
+
+void help_menu() {
+	printf("\n--Help Menu--\n");
+	printf("Commands:\n");
+	printf("/help \t -- \t Shows this menu\n");
+	printf("/exit \t -- \t Closes the chat and application\n\n");
+}
 
 int main( int argc, char * argv[] )
 {
@@ -93,10 +129,9 @@ printf("//Starting API...\n");
 	}
 //START SOCKET API
 
-//ASK USER FOR SERVER IP, PORT AND USERNAME.
+//ASK USER FOR SERVER IP, PORT
   char server_ip[45];
   char server_port[5];
-  char username[20];
 
 	printf("\n--Connection Settings--\n");
 
@@ -105,10 +140,7 @@ printf("//Starting API...\n");
 
   printf("TCP_ChatServer PORT [1-99999]: ");
   scanf("%s", server_port);
-
-  printf("Your Username [20]: ");
-  scanf("%s", username);
-//ASK USER FOR SERVER IP, PORT AND USERNAME.
+//ASK USER FOR SERVER IP, PORT
 
 //SET CONNECT TO IP, IP-VERSION,  PORT, PROTOCOL
 	struct addrinfo internet_address_setup, *result_head, *result_item;
@@ -137,8 +169,7 @@ printf("//Starting API...\n");
 	printf("\n//Establishing Connection...\n");
 
 	result_item = result_head; //take first of the linked list
-	while( result_item != NULL ) //while the pointer is valid
-	{
+	while( result_item != NULL ) { //while the pointer is valid
 		internet_socket = socket( result_item->ai_family, result_item->ai_socktype, result_item->ai_protocol );
 		if( internet_socket == -1 )
 		{
@@ -158,7 +189,7 @@ printf("//Starting API...\n");
 			}
 			else
 			{
-				printf( "//Connection Established\n");
+				printf( "//Connection Established\n\n");
 				break; //stop running through the linked list
 			}
 		}
@@ -174,17 +205,64 @@ printf("//Starting API...\n");
 
 //CREATE THREAD RECEIVE MSG
 	pthread_t thread_recv; //
-	pthread_create(&thread_recv, NULL, client_recv, (void *) (intptr_t) internet_socket);
+	if (pthread_create(&thread_recv, NULL, client_recv, (void *) (intptr_t) internet_socket) != 0) {
+		perror("Error Creating thread");
+	}
 //CREATE THREAD RECEIVE MSG
 
-//SEND MSG
-  int number_of_bytes_send = 0;
-  number_of_bytes_send = send( internet_socket, username, strlen(username), 0 );
-  if( number_of_bytes_send == -1 ) {
-    printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
-    perror( "send" );
-  }
-//SEND MSG
+//ASK USERNAME
+	char username[20];
+
+	printf("Enter A Username [20]: ");
+	scanf("%s", username);
+//ASK USERNAME
+
+//VALIDATE USERNAME
+	printf("//Validating Username...\n");
+	client_send(internet_socket, username);
+
+	while (1) {
+		if (number_of_bytes_received <= 4) {
+			if (strcmp(recv_buffer, "0\r") == 0) {
+				printf("\n");
+				break;
+			}
+			if (strcmp(recv_buffer, "1\r") == 0) {
+				strcpy(recv_buffer, "\0"); //While loop is faster than client_send writing to recv_buffer (val stays 1\r) -> infinite loop in this if statement
+				printf("//Username already in use!\n");
+				printf("New username: ");
+				scanf("%s", username);
+				printf("//Validating Username...\n");
+				client_send(internet_socket, username);
+			}
+		}
+	}
+//VALIDATE USERNAME
+
+//CHAT USER INTERFACE
+	char interf_input[1000] = "\0";
+	char send_buffer[1030];
+
+	while (1) {
+		printf("> ");
+		fflush(stdin);
+		gets(interf_input);
+		if (strcmp(interf_input, "/help") == 0) {
+			help_menu();
+			strcpy(interf_input, "\0");
+		}
+
+		if (strcmp(interf_input, "/exit") == 0) {
+			break;
+		}
+
+		if (strlen(interf_input) > 0) {
+			msg_compose(username, interf_input, send_buffer);
+			client_send(internet_socket, send_buffer);
+		strcpy(interf_input, "\0");
+		}
+	}
+//CHAT USER INTERFACE
 
 //CLOSE CONNECTION & CLEANUP
 	int shutdown_return;
