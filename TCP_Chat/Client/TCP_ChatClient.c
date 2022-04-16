@@ -3,14 +3,16 @@
 --Ask user for server port		OK
 
 --Ask user for username       OK
---Check if username is already taken
+--Ask server if username is already taken		OK
 
 --Add /exit flag to close the chat and connection		OK
--- Add other flags																	OK
+--Add other flags																		OK
 
 --Structure the messages: time, username, message		OK
 
 --Send and receive at the same time		OK
+
+--Show sender info
 */
 
 
@@ -56,7 +58,7 @@ void print_ip_address( struct addrinfo * ip ) {
 //DISPLAYS CONNECTION INFO
 
 //RECEIVE MSG THREAD
-void *client_recv (void *socket) {
+void *client_recv(void *socket) {
 	int internet_socket = (intptr_t) socket;
 
 	//RECEIVE MSG
@@ -259,7 +261,7 @@ printf("//Starting API...\n");
 		if (strlen(interf_input) > 0) {
 			msg_compose(username, interf_input, send_buffer);
 			client_send(internet_socket, send_buffer);
-		strcpy(interf_input, "\0");
+			strcpy(interf_input, "\0");
 		}
 	}
 //CHAT USER INTERFACE
