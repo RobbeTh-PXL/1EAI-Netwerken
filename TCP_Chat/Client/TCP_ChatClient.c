@@ -106,7 +106,7 @@ void msg_compose(char *username, char *interf_input, char *send_buffer) {
   timeStruct = localtime(&seconds);
 	//TIME
 
-	sprintf(send_buffer, "[%d:%d] %s: %s\n", timeStruct->tm_hour, timeStruct->tm_min, username, interf_input);
+	sprintf(send_buffer, "[%d:%02d] %s: %s\n", timeStruct->tm_hour, timeStruct->tm_min, username, interf_input);
 }
 //COMPOSE MSG
 
@@ -209,6 +209,7 @@ printf("//Starting API...\n");
 	pthread_t thread_recv; //
 	if (pthread_create(&thread_recv, NULL, client_recv, (void *) (intptr_t) internet_socket) != 0) {
 		perror("Error Creating thread");
+		exit(3);
 	}
 //CREATE THREAD RECEIVE MSG
 
