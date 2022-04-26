@@ -33,7 +33,7 @@ int thread_stop = 0; //Flag for breaking continuous loop in threads, allowing th
 int number_of_bytes_received = 0; //For system messages
 char recv_buffer[1000]; //For system messages
 
-//DISPLAYS CONNECTION INFO
+//PRINTS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip ) {
 	void * ip_address;
 	char * ip_version;
@@ -55,7 +55,7 @@ void print_ip_address( struct addrinfo * ip ) {
 	inet_ntop( ip->ai_family, ip_address, ip_string, sizeof ip_string );
 	printf( "%s -> %s\n", ip_version, ip_string );
 }
-//DISPLAYS CONNECTION INFO
+//PRINTS CONNECTION INFO
 
 //RECEIVE MSG THREAD
 void *client_recv(void *socket) {
@@ -110,12 +110,16 @@ void msg_compose(char *username, char *interf_input, char *send_buffer) {
 }
 //COMPOSE MSG
 
+//PRINTS HELP MENU
 void help_menu() {
 	printf("\n--Help Menu--\n");
 	printf("Commands:\n");
-	printf("/help \t -- \t Shows this menu\n");
-	printf("/exit \t -- \t Closes the chat and application\n\n");
+	printf("/help \t\t -- \t Shows this menu\n");
+	printf("/exit \t\t -- \t Closes the chat and application\n");
+	printf("/senderInfo \t -- \t Toggles the display of sender connection info\n");
+	printf("\n");
 }
+//PRINTS HELP MENU
 
 int main( int argc, char * argv[] )
 {
@@ -144,7 +148,7 @@ printf("//Starting API...\n");
   scanf("%s", server_port);
 //ASK USER FOR SERVER IP, PORT
 
-//SET CONNECT TO IP, IP-VERSION,  PORT, PROTOCOL
+//SOCKET SETUP
 	struct addrinfo internet_address_setup, *result_head, *result_item;
 	memset( &internet_address_setup, 0, sizeof internet_address_setup );
 	internet_address_setup.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version
@@ -158,14 +162,14 @@ printf("//Starting API...\n");
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
 		exit( 2 );
 	}
-//SET CONNECT TO IP, IP-VERSION,  PORT, PROTOCOL
+//SOCKET SETUP
 
 /* NOT USED
 	struct sockaddr * internet_address;
 	size_t internet_address_length;
 */
 
-//CONNECT TO TARGET (internet_address_setup)
+//CREATE SOCKET (internet_address_setup)
 	int internet_socket;
 
 	printf("\n//Establishing Connection...\n");
@@ -203,7 +207,7 @@ printf("//Starting API...\n");
 		exit( 4 );
 	}
 	freeaddrinfo( result_head ); //free the linked list
-//CONNECT TO TARGET (internet_address_setup)
+//CREATE SOCKET (internet_address_setup)
 
 //CREATE THREAD RECEIVE MSG
 	pthread_t thread_recv; //
@@ -246,6 +250,8 @@ printf("//Starting API...\n");
 	char interf_input[1000] = "\0";
 	char send_buffer[1030];
 
+	printf("Use /help to view all commands.\n");
+
 	while (1) {
 		printf("> ");
 		fflush(stdin);
@@ -273,7 +279,7 @@ printf("//Starting API...\n");
 
 	thread_stop = 1; //flag for breaking continuous loop in threads, allowing them to exit
 
-	printf("//Stopping Comms...\n");
+	printf("  //Stopping Comms...\n");
 	shutdown_return = shutdown( internet_socket, SD_SEND ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
 	if( shutdown_return == -1 )
 	{
@@ -281,13 +287,13 @@ printf("//Starting API...\n");
 		perror( "shutdown" );
 	}
 
-	printf("//Closing Socket...\n");
+	printf("  //Closing Socket...\n");
 	close( internet_socket );
 
-	printf("//Stopping Threads...\n");
+	printf("  //Stopping Threads...\n");
 	pthread_join(thread_recv, NULL); //Check if thread is stopped by joining it.
 
-	printf("//Stopping API...\n");
+	printf("  //Stopping API...\n");
 	WSACleanup();
 
 	printf("--//Shutdown Complete\\\\--\n");
