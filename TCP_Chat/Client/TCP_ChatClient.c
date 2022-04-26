@@ -33,7 +33,7 @@ int thread_stop = 0; //Flag for breaking continuous loop in threads, allowing th
 int number_of_bytes_received = 0; //For system messages
 char recv_buffer[1000]; //For system messages
 
-//DISPLAYS CONNECTION INFO
+//PRINTS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip ) {
 	void * ip_address;
 	char * ip_version;
@@ -55,7 +55,7 @@ void print_ip_address( struct addrinfo * ip ) {
 	inet_ntop( ip->ai_family, ip_address, ip_string, sizeof ip_string );
 	printf( "%s -> %s\n", ip_version, ip_string );
 }
-//DISPLAYS CONNECTION INFO
+//PRINTS CONNECTION INFO
 
 //RECEIVE MSG THREAD
 void *client_recv(void *socket) {
@@ -110,12 +110,16 @@ void msg_compose(char *username, char *interf_input, char *send_buffer) {
 }
 //COMPOSE MSG
 
+//PRINTS HELP MENU
 void help_menu() {
 	printf("\n--Help Menu--\n");
 	printf("Commands:\n");
-	printf("/help \t -- \t Shows this menu\n");
-	printf("/exit \t -- \t Closes the chat and application\n\n");
+	printf("/help \t\ -- \t Shows this menu\n");
+	printf("/exit \t\t -- \t Closes the chat and application\n");
+	printf("/senderInfo \t -- \t Toggles the display of sender connection info\n");
+	printf("\n");
 }
+//PRINTS HELP MENU
 
 int main( int argc, char * argv[] )
 {
@@ -245,6 +249,8 @@ printf("//Starting API...\n");
 //CHAT USER INTERFACE
 	char interf_input[1000] = "\0";
 	char send_buffer[1030];
+
+	printf("Use /help to view all commands.\n");
 
 	while (1) {
 		printf("> ");
