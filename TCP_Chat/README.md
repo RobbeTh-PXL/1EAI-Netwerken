@@ -41,9 +41,10 @@
 
 ## How To Compile
 ### Windows
-I use [gcc](https://gcc.gnu.org/) to compile the c code\
+I use [gcc](https://gcc.gnu.org/) to compile the c code.\
 For Windows, install the gcc runtime environment in order to use gcc.\
 Recommended runtime environment: [MinGW-w64](https://sourceforge.net/projects/mingw-w64/)\
+\
 **If downloaded as ZIP, extract the contents!**\
 **Navigate to the folder containing the .c file!**
 #### TCP_ChatClient
