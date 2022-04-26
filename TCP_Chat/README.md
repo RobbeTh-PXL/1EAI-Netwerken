@@ -2,7 +2,7 @@
 **TCP Chatbox met geschiedenis via HTTP (25%)**
 
 
-## Doelstellingen
+## Doelstellingen - Progress
 ### TCP_ChatClient
 - [x] Client kan TCP connectie maken (bewijs via WireShark) [1/25]
 - [x] Client kan TCP packetten succesvol sturen en ontvangen (bewijs via WireShark) [1/25]
@@ -30,8 +30,11 @@
 * Time stamped messages
 ### ChatServer
 * Multiple clients
+* Receive and send at the same time
 * Username validation
+* System & User oriented messages
 * Chat history
+* Relay messages to clients
 
 
 ## To Be Implemented
