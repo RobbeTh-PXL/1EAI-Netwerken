@@ -114,7 +114,7 @@ void msg_compose(char *username, char *interf_input, char *send_buffer) {
 void help_menu() {
 	printf("\n--Help Menu--\n");
 	printf("Commands:\n");
-	printf("/help \t\ -- \t Shows this menu\n");
+	printf("/help \t\t -- \t Shows this menu\n");
 	printf("/exit \t\t -- \t Closes the chat and application\n");
 	printf("/senderInfo \t -- \t Toggles the display of sender connection info\n");
 	printf("\n");
@@ -279,7 +279,7 @@ printf("//Starting API...\n");
 
 	thread_stop = 1; //flag for breaking continuous loop in threads, allowing them to exit
 
-	printf("//Stopping Comms...\n");
+	printf("  //Stopping Comms...\n");
 	shutdown_return = shutdown( internet_socket, SD_SEND ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
 	if( shutdown_return == -1 )
 	{
@@ -287,13 +287,13 @@ printf("//Starting API...\n");
 		perror( "shutdown" );
 	}
 
-	printf("//Closing Socket...\n");
+	printf("  //Closing Socket...\n");
 	close( internet_socket );
 
-	printf("//Stopping Threads...\n");
+	printf("  //Stopping Threads...\n");
 	pthread_join(thread_recv, NULL); //Check if thread is stopped by joining it.
 
-	printf("//Stopping API...\n");
+	printf("  //Stopping API...\n");
 	WSACleanup();
 
 	printf("--//Shutdown Complete\\\\--\n");
