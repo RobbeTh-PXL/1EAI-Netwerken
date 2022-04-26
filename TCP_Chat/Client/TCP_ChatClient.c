@@ -148,7 +148,7 @@ printf("//Starting API...\n");
   scanf("%s", server_port);
 //ASK USER FOR SERVER IP, PORT
 
-//SET CONNECT TO IP, IP-VERSION,  PORT, PROTOCOL
+//SOCKET SETUP
 	struct addrinfo internet_address_setup, *result_head, *result_item;
 	memset( &internet_address_setup, 0, sizeof internet_address_setup );
 	internet_address_setup.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version
@@ -162,14 +162,14 @@ printf("//Starting API...\n");
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
 		exit( 2 );
 	}
-//SET CONNECT TO IP, IP-VERSION,  PORT, PROTOCOL
+//SOCKET SETUP
 
 /* NOT USED
 	struct sockaddr * internet_address;
 	size_t internet_address_length;
 */
 
-//CONNECT TO TARGET (internet_address_setup)
+//CREATE SOCKET (internet_address_setup)
 	int internet_socket;
 
 	printf("\n//Establishing Connection...\n");
@@ -207,7 +207,7 @@ printf("//Starting API...\n");
 		exit( 4 );
 	}
 	freeaddrinfo( result_head ); //free the linked list
-//CONNECT TO TARGET (internet_address_setup)
+//CREATE SOCKET (internet_address_setup)
 
 //CREATE THREAD RECEIVE MSG
 	pthread_t thread_recv; //
