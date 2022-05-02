@@ -40,6 +40,8 @@ int thread_stop = 0; //Flag for breaking continuous loop in threads, allowing th
 int number_of_bytes_received = 0; //For system messages
 char recv_buffer[1000]; //For system messages
 
+int show_senderInfo = 0; //
+
 //PRINTS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip ) {
 	void * ip_address;
@@ -77,6 +79,11 @@ void *client_recv(void *socket) {
 		if (recv_buffer[0] == '[') { //Message for user
 			recv_buffer[number_of_bytes_received] = '\0';
 			printf("%s\n> ", recv_buffer);
+			number_of_bytes_received = 0;
+		}
+		if (recv_buffer[0] == '*' && show_senderInfo == 1) { //Message for user
+			recv_buffer[number_of_bytes_received] = '\0';
+			printf("\t%s\n> ", recv_buffer);
 			number_of_bytes_received = 0;
 		}
 		if (recv_buffer[0] == '!') { //Message for system
@@ -268,6 +275,11 @@ printf("//Starting API...\n");
 
 		if (strcmp(interf_input, "/exit") == 0) {
 			break;
+		}
+
+		if (strcmp(interf_input, "/senderInfo") == 0) {
+			show_senderInfo ^= 1;
+			strcpy(interf_input, "\0");
 		}
 
 		if (strlen(interf_input) > 0) {
