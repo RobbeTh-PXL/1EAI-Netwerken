@@ -76,12 +76,12 @@ void *client_recv(void *socket) {
 		if (number_of_bytes_received == -1) {
 			perror("recv");
 		}
-		if (recv_buffer[0] == '[') { //Message for user
+		if (recv_buffer[0] == '[' && number_of_bytes_received > 0) { //Message for user
 			recv_buffer[number_of_bytes_received] = '\0';
 			printf("%s\n> ", recv_buffer);
 			number_of_bytes_received = 0;
 		}
-		if (recv_buffer[0] == '*' && show_senderInfo == 1) { //Message for user
+		if (recv_buffer[0] == '*' && show_senderInfo == 1) { //senderInfo
 			recv_buffer[number_of_bytes_received] = '\0';
 			printf("\t%s\n> ", recv_buffer);
 			number_of_bytes_received = 0;
