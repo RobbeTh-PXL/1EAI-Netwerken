@@ -40,7 +40,7 @@ int thread_stop = 0; //Flag for breaking continuous loop in threads, allowing th
 int number_of_bytes_received = 0; //For system messages
 char recv_buffer[1000]; //For system messages
 
-int show_senderInfo = 0; //
+int show_senderInfo = 0; //Toggles with /senderInfo
 
 //PRINTS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip ) {
