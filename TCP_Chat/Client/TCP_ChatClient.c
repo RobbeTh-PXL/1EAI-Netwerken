@@ -15,6 +15,13 @@
 --Show sender info
 */
 
+/* INFO
+--Sytem messages start with ! followed by a 3-digit number
+**Sytem messages (codes):
+	!200 -> OK
+	!409 -> CONFLICT
+	
+*/
 
 #define _WIN32_WINNT 0x0601
 
@@ -67,12 +74,12 @@ void *client_recv(void *socket) {
 		if (number_of_bytes_received == -1) {
 			perror("recv");
 		}
-		if (number_of_bytes_received > 4) { //Message for user
+		if (number_of_bytes_received > 5) { //Message for user
 			recv_buffer[number_of_bytes_received] = '\0';
 			printf("%s\n> ", recv_buffer);
 			number_of_bytes_received = 0;
 		}
-		if (number_of_bytes_received <= 4) { //Message for system
+		if (recv_buffer[0] == '!') { //Message for system
 			recv_buffer[number_of_bytes_received] = '\0';
 			number_of_bytes_received = 0;
 		}
@@ -229,19 +236,17 @@ printf("//Starting API...\n");
 	client_send(internet_socket, username);
 
 	while (1) {
-		if (number_of_bytes_received <= 4) {
-			if (strcmp(recv_buffer, "0\r") == 0) {
-				printf("\n");
-				break;
-			}
-			if (strcmp(recv_buffer, "1\r") == 0) {
-				strcpy(recv_buffer, "\0"); //While loop is faster than client_send writing to recv_buffer (val stays 1\r) -> infinite loop in this if statement
-				printf("//Username already in use!\n");
-				printf("New username: ");
-				scanf("%s", username);
-				printf("//Validating Username...\n");
-				client_send(internet_socket, username);
-			}
+		if (strcmp(recv_buffer, "!200\r") == 0) {
+			printf("\n");
+			break;
+		}
+		if (strcmp(recv_buffer, "!409\r") == 0) {
+			strcpy(recv_buffer, "\0"); //While loop is faster than client_send writing to recv_buffer (val stays 1\r) -> infinite loop in this if statement
+			printf("//Username already in use!\n");
+			printf("New username: ");
+			scanf("%s", username);
+			printf("//Validating Username...\n");
+			client_send(internet_socket, username);
 		}
 	}
 //VALIDATE USERNAME
