@@ -83,7 +83,7 @@ int main( int argc, char * argv[] )
 	}
 //SOCKET SETUP
 
-//CREATE SOCKET (internet_address_setup)
+//CREATE SOCKET & LISTEN FOR CONNECTION (internet_address_setup)
 	int internet_socket;
 
 	result_item = result_head; //take first of the linked list
@@ -126,7 +126,7 @@ int main( int argc, char * argv[] )
 		exit( 5 );
 	}
 	freeaddrinfo( result_head ); //free the linked list
-//CREATE SOCKET (internet_address_setup)
+//CREATE SOCKET & LISTEN FOR CONNECTION (internet_address_setup)
 
 //ACCEPT CLIENT CONNECTION (internet_socket (listener) closes)
 	struct sockaddr_storage client_ip_address;
