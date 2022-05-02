@@ -20,7 +20,7 @@
 **Sytem messages (codes):
 	!200 -> OK
 	!409 -> CONFLICT
-	
+
 */
 
 #define _WIN32_WINNT 0x0601
@@ -74,7 +74,7 @@ void *client_recv(void *socket) {
 		if (number_of_bytes_received == -1) {
 			perror("recv");
 		}
-		if (number_of_bytes_received > 5) { //Message for user
+		if (recv_buffer[0] == '[') { //Message for user
 			recv_buffer[number_of_bytes_received] = '\0';
 			printf("%s\n> ", recv_buffer);
 			number_of_bytes_received = 0;
@@ -253,7 +253,7 @@ printf("//Starting API...\n");
 
 //CHAT USER INTERFACE
 	char interf_input[1000] = "\0";
-	char send_buffer[1030];
+	char send_buffer[1030]; //1000 + 30 for time and username
 
 	printf("Use /help to view all commands.\n");
 
