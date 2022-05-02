@@ -12,7 +12,7 @@
 
 --Send and receive at the same time		OK
 
---Show sender info
+--Show sender info	OK
 */
 
 /* INFO
@@ -279,6 +279,11 @@ printf("//Starting API...\n");
 
 		if (strcmp(interf_input, "/senderInfo") == 0) {
 			show_senderInfo ^= 1;
+			strcpy(interf_input, "\0");
+		}
+
+		if (interf_input[0] == '/') {
+			printf("Unknown Command; Use /help to view all commands.\n");
 			strcpy(interf_input, "\0");
 		}
 
