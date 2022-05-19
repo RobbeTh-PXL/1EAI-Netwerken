@@ -31,8 +31,10 @@ void print_ip_address( struct addrinfo * ip ) {
 //PRINTS CONNECTION INFO
 
 int main( int argc, char * argv[] ) {
+  printf("__//UDP Server\\\\__\n");
+
 //START SOCKET API
-  printf("[+] Starting API...\n");
+  printf("\n[+] Starting API...\n");
 	WSADATA wsaData; //WSAData wsaData; //Could be different case
 	if( WSAStartup( MAKEWORD(2,0), &wsaData ) != 0 ) // MAKEWORD(1,1) for Winsock 1.1, MAKEWORD(2,0) for Winsock 2.0:
 	{
@@ -41,14 +43,30 @@ int main( int argc, char * argv[] ) {
 	}
 //START SOCKET API
 
+//ASK USER FOR SERVER IP, PORT
+  char server_ip[45];
+  char server_port[5];
+
+  printf("\nUDP Server IP:\n");
+  printf("[?] > ");
+  scanf("%44s[^\n]", server_ip);
+  fflush(stdin);
+
+  printf("\nUDP Server Port:\n");
+  printf("[?] > ");
+  scanf("%4s[^\n]", server_ip);
+  fflush(stdin);
+//ASK USER FOR SERVER IP, PORT
+
 //SOCKET SETUP
 	struct addrinfo internet_address_setup, *result_head, *result_item;
 	memset( &internet_address_setup, 0, sizeof internet_address_setup );
 	internet_address_setup.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version
 	internet_address_setup.ai_socktype = SOCK_DGRAM;
+  internet_address_setup.ai_protocol = IPPROTO_UDP;
 
 	int getaddrinfo_return;
-	getaddrinfo_return = getaddrinfo( "localhost.pxl-ea-ict.be", "24042", &internet_address_setup, &result_head );
+	getaddrinfo_return = getaddrinfo( server_ip, server_port, &internet_address_setup, &result_head );
 	if( getaddrinfo_return != 0 )
 	{
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
