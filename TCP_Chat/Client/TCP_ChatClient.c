@@ -12,9 +12,16 @@
 
 --Send and receive at the same time		OK
 
---Show sender info
+--Show sender info	OK
 */
 
+/* INFO
+--Sytem messages start with ! followed by a 3-digit number
+**Sytem messages (codes):
+	!200 -> OK
+	!409 -> CONFLICT
+
+*/
 
 #define _WIN32_WINNT 0x0601
 
@@ -32,6 +39,8 @@
 int thread_stop = 0; //Flag for breaking continuous loop in threads, allowing them to exit
 int number_of_bytes_received = 0; //For system messages
 char recv_buffer[1000]; //For system messages
+
+int show_senderInfo = 0; //Toggles with /senderInfo
 
 //PRINTS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip ) {
@@ -67,12 +76,17 @@ void *client_recv(void *socket) {
 		if (number_of_bytes_received == -1) {
 			perror("recv");
 		}
-		if (number_of_bytes_received > 4) { //Message for user
+		if (recv_buffer[0] == '[' && number_of_bytes_received > 0) { //Message for user
 			recv_buffer[number_of_bytes_received] = '\0';
 			printf("%s\n> ", recv_buffer);
 			number_of_bytes_received = 0;
 		}
-		if (number_of_bytes_received <= 4) { //Message for system
+		if (recv_buffer[0] == '*' && show_senderInfo == 1) { //senderInfo
+			recv_buffer[number_of_bytes_received] = '\0';
+			printf("\t%s\n> ", recv_buffer);
+			number_of_bytes_received = 0;
+		}
+		if (recv_buffer[0] == '!') { //Message for system
 			recv_buffer[number_of_bytes_received] = '\0';
 			number_of_bytes_received = 0;
 		}
@@ -229,26 +243,24 @@ printf("//Starting API...\n");
 	client_send(internet_socket, username);
 
 	while (1) {
-		if (number_of_bytes_received <= 4) {
-			if (strcmp(recv_buffer, "0\r") == 0) {
-				printf("\n");
-				break;
-			}
-			if (strcmp(recv_buffer, "1\r") == 0) {
-				strcpy(recv_buffer, "\0"); //While loop is faster than client_send writing to recv_buffer (val stays 1\r) -> infinite loop in this if statement
-				printf("//Username already in use!\n");
-				printf("New username: ");
-				scanf("%s", username);
-				printf("//Validating Username...\n");
-				client_send(internet_socket, username);
-			}
+		if (strcmp(recv_buffer, "!200\r") == 0) {
+			printf("\n");
+			break;
+		}
+		if (strcmp(recv_buffer, "!409\r") == 0) {
+			strcpy(recv_buffer, "\0"); //While loop is faster than client_send writing to recv_buffer (val stays 1\r) -> infinite loop in this if statement
+			printf("//Username already in use!\n");
+			printf("New username: ");
+			scanf("%s", username);
+			printf("//Validating Username...\n");
+			client_send(internet_socket, username);
 		}
 	}
 //VALIDATE USERNAME
 
 //CHAT USER INTERFACE
 	char interf_input[1000] = "\0";
-	char send_buffer[1030];
+	char send_buffer[1030]; //1000 + 30 for time and username
 
 	printf("Use /help to view all commands.\n");
 
@@ -263,6 +275,16 @@ printf("//Starting API...\n");
 
 		if (strcmp(interf_input, "/exit") == 0) {
 			break;
+		}
+
+		if (strcmp(interf_input, "/senderInfo") == 0) {
+			show_senderInfo ^= 1;
+			strcpy(interf_input, "\0");
+		}
+
+		if (interf_input[0] == '/') {
+			printf("Unknown Command; Use /help to view all commands.\n");
+			strcpy(interf_input, "\0");
 		}
 
 		if (strlen(interf_input) > 0) {

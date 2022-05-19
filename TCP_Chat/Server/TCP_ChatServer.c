@@ -1,3 +1,14 @@
+/* TODO
+--Accept multiple incoming connections
+
+--Validate Username -> returns 0 when ok
+
+--Send msg to other clients
+
+--Send sender info
+*/
+
+
 #define _WIN32_WINNT 0x0601
 
 #include <winsock2.h>
@@ -5,6 +16,8 @@
 
 #include <stdio.h>
 #include <unistd.h>
+
+#include <pthread.h>
 
 //PRINTS CONNECTION INFO
 void print_ip_address( unsigned short family, struct sockaddr * ip ) {
@@ -70,7 +83,7 @@ int main( int argc, char * argv[] )
 	}
 //SOCKET SETUP
 
-//CREATE SOCKET (internet_address_setup)
+//CREATE SOCKET & LISTEN FOR CONNECTION (internet_address_setup)
 	int internet_socket;
 
 	result_item = result_head; //take first of the linked list
@@ -113,11 +126,11 @@ int main( int argc, char * argv[] )
 		exit( 5 );
 	}
 	freeaddrinfo( result_head ); //free the linked list
-//CREATE SOCKET (internet_address_setup)
+//CREATE SOCKET & LISTEN FOR CONNECTION (internet_address_setup)
 
 //ACCEPT CLIENT CONNECTION (internet_socket (listener) closes)
 	struct sockaddr_storage client_ip_address;
-	socklen_t client_ip_address_length = sizeof client_ip_address;
+	socklen_t client_ip_address_length = sizeof(client_ip_address);
 	int client_socket;
 	client_socket = accept( internet_socket, (struct sockaddr *) &client_ip_address, &client_ip_address_length );
 	if( client_socket == -1 ) {
