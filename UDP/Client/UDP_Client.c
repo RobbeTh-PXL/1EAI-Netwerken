@@ -43,20 +43,32 @@ int main( int argc, char * argv[] ) {
 	}
 //START SOCKET API
 
-//ASK USER FOR SERVER IP, PORT
-  char server_ip[45];
-  char server_port[5];
+//ASK USER FOR SERVER IP, PORT, AMOUNT, MESSAGE
+  char server_ip[45] = "\0";
+  char server_port[5] = "\0";
+	char msg[100] = "\0";
+	int amount = 0;
 
   printf("\nUDP Server IP:\n");
   printf("[?] > ");
-  scanf("%44s[^\n]", server_ip);
+  scanf("%s", server_ip);
   fflush(stdin);
 
   printf("\nUDP Server Port:\n");
   printf("[?] > ");
-  scanf("%4s[^\n]", server_ip);
+  scanf("%s", server_port);
   fflush(stdin);
-//ASK USER FOR SERVER IP, PORT
+
+	printf("\nAmount Of Packets:\n");
+	printf("[?] > ");
+	scanf("%d", &amount);
+	fflush(stdin);
+
+	printf("\nMessage:\n");
+	printf("[?] > ");
+	scanf("%s", msg);
+	fflush(stdin);
+//ASK USER FOR SERVER IP, PORT, AMOUNT, MESSAGE
 
 //SOCKET SETUP
 	struct addrinfo internet_address_setup, *result_head, *result_item;
@@ -98,20 +110,23 @@ int main( int argc, char * argv[] ) {
 		}
 		result_item = result_item->ai_next; //take next in the linked list
 	}
-	if( result_item == NULL )
+	if(result_item == NULL)
 	{
-		fprintf( stderr, "socket: no valid socket address found\n" );
-		exit( 3 );
+		fprintf(stderr, "socket: no valid socket address found\n");
+		exit(3);
 	}
-	freeaddrinfo( result_head ); //free the linked list
+	freeaddrinfo(result_head); //free the linked list
 //CREATE SOCKET (internet_address_setup)
 
 //SEND MSG
 	int number_of_bytes_send = 0;
-	number_of_bytes_send = sendto( internet_socket, "Hello UDP world!", 16, 0, internet_address, internet_address_length );
-	if( number_of_bytes_send == -1 )
-	{
-		perror( "sendto" );
+
+	for (int i = 0; i < amount; i++) {
+		number_of_bytes_send = sendto(internet_socket, msg, sizeof(msg), 0, internet_address, internet_address_length);
+		if(number_of_bytes_send == -1)
+		{
+			perror("sendto");
+		}
 	}
 //SEND MSG
 
