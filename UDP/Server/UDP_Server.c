@@ -78,7 +78,7 @@ int main( int argc, char * argv[] ) {
 //SOCKET SETUP
 	struct addrinfo internet_address_setup, *result_head, *result_item;
 	memset( &internet_address_setup, 0, sizeof internet_address_setup );
-	internet_address_setup.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version
+	internet_address_setup.ai_family = AF_INET; // AF_INET or AF_INET6 to force version AF_UNSPEC
 	internet_address_setup.ai_socktype = SOCK_DGRAM;
 	internet_address_setup.ai_flags = AI_PASSIVE; // use ANY address for IPv4 and IPv6
 
@@ -131,17 +131,21 @@ int main( int argc, char * argv[] ) {
 //RECEIVE MSG
 	int number_of_bytes_received = 0;
 	char buffer[1000];
-	struct sockaddr_storage client_ip_address;
+
+  struct sockaddr_storage client_ip_address;
 	socklen_t client_ip_address_length = sizeof client_ip_address;
-	number_of_bytes_received = recvfrom( internet_socket, buffer, ( sizeof buffer ) - 1, 0, (struct sockaddr *) &client_ip_address, &client_ip_address_length );
-	if( number_of_bytes_received == -1 )
-	{
-		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
-		perror( "recvfrom" );
-	}
-	buffer[number_of_bytes_received] = '\0';
-	printf( "Got %s from ", buffer );
-	ss_print_ip_address( &client_ip_address );
+
+  for (int i = 0; i < amount; i++) {
+    number_of_bytes_received = recvfrom( internet_socket, buffer, ( sizeof buffer ) - 1, 0, (struct sockaddr *) &client_ip_address, &client_ip_address_length );
+  	if( number_of_bytes_received == -1 )
+  	{
+  		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
+  		perror( "recvfrom" );
+  	}
+  	buffer[number_of_bytes_received] = '\0';
+  	printf( "Got %s from ", buffer );
+  	ss_print_ip_address( &client_ip_address );
+  }
 //RECEIVE MSG
 
 //CLOSE CONNECTION & CLEANUP
