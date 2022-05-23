@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <stdlib.h>
+#include <string.h>
+
 //PRINTS CONNECTION INFO
 void print_ip_address( unsigned short family, struct sockaddr * ip ) {
 	void * ip_address;
@@ -128,6 +131,16 @@ int main( int argc, char * argv[] ) {
 	freeaddrinfo( result_head ); //free the linked list
 //CREATE SOCKET (internet_address_setup)
 
+//FILE HANDLING
+  FILE *outFile = NULL;
+
+  outFile = fopen("output.csv", "w");
+  if (outFile == NULL) {
+    printf("\n[-] Output file could not be created!\n");
+    exit(4);
+  }
+//FILE HANDLING
+
 //RECEIVE MSG
 	int number_of_bytes_received = 0;
 	char buffer[1000];
@@ -136,6 +149,8 @@ int main( int argc, char * argv[] ) {
 	socklen_t client_ip_address_length = sizeof client_ip_address;
 
   for (int i = 0; i < amount; i++) {
+    strcpy(buffer, "\0");
+    number_of_bytes_received = 0;
     number_of_bytes_received = recvfrom( internet_socket, buffer, ( sizeof buffer ) - 1, 0, (struct sockaddr *) &client_ip_address, &client_ip_address_length );
   	if( number_of_bytes_received == -1 )
   	{
@@ -146,11 +161,15 @@ int main( int argc, char * argv[] ) {
     printf("[+] Receiving from ");
   	ss_print_ip_address( &client_ip_address );
     printf("[->] %s\n", buffer);
+    printf("[+] Writing to output.csv...\n");
+    fwrite(&buffer, strlen(buffer), 1, outFile);
+    fwrite("\n", sizeof(char), 1, outFile);
     printf("[+] Packet %d/%d\n\n", i+1, amount);
   }
 //RECEIVE MSG
 
 //CLOSE CONNECTION & CLEANUP
+  fclose(outFile);
 	close( internet_socket );
 	WSACleanup();
 //CLOSE CONNECTION & CLEANUP
