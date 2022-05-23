@@ -143,8 +143,10 @@ int main( int argc, char * argv[] ) {
   		perror( "recvfrom" );
   	}
   	buffer[number_of_bytes_received] = '\0';
-  	printf( "Got %s from ", buffer );
+    printf("[+] Receiving from ");
   	ss_print_ip_address( &client_ip_address );
+    printf("[->] %s\n", buffer);
+    printf("[+] Packet %d/%d\n\n", i+1, amount);
   }
 //RECEIVE MSG
 
