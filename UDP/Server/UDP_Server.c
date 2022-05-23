@@ -116,7 +116,7 @@ int main( int argc, char * argv[] ) {
 			}
 			else
 			{
-				printf( "Bind to " );
+				printf( "[+] Bind to " );
 				ai_print_ip_address( result_item );
 				break; //stop running through the linked list
 			}
@@ -134,6 +134,7 @@ int main( int argc, char * argv[] ) {
 //FILE HANDLING
   FILE *outFile = NULL;
 
+  printf("[+] Creating output.csv...\n");
   outFile = fopen("output.csv", "w");
   if (outFile == NULL) {
     printf("\n[-] Output file could not be created!\n");
@@ -148,6 +149,7 @@ int main( int argc, char * argv[] ) {
   struct sockaddr_storage client_ip_address;
 	socklen_t client_ip_address_length = sizeof client_ip_address;
 
+  printf("[+] Listening...\n");
   for (int i = 0; i < amount; i++) {
     strcpy(buffer, "\0");
     number_of_bytes_received = 0;
@@ -158,7 +160,7 @@ int main( int argc, char * argv[] ) {
   		perror( "recvfrom" );
   	}
   	buffer[number_of_bytes_received] = '\0';
-    printf("[+] Receiving from ");
+    printf("\n[+] Receiving from ");
   	ss_print_ip_address( &client_ip_address );
     printf("[->] %s\n", buffer);
     printf("[+] Writing to output.csv...\n");
