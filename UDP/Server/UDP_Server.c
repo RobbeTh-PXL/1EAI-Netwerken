@@ -48,8 +48,32 @@ int main( int argc, char * argv[] ) {
 	}
 //START SOCKET API
 
-//ASK USER FOR SERVER IP, PORT, AMOUNT,
-//ASK USER FOR SERVER IP, PORT, AMOUNT,
+//ASK USER FOR SERVER IP, PORT, AMOUNT
+  char server_ip[45] = "\0";
+  char server_port[5] = "\0";
+  int amount = 0;
+  int timeout = 0;
+
+  printf("\nSet Server IP:\n");
+  printf("[?] > ");
+  scanf("%s", server_ip);
+  fflush(stdin);
+
+  printf("\nSet UDP Server PORT:\n");
+  printf("[?] > ");
+  scanf("%s", server_port);
+  fflush(stdin);
+
+  printf("\nAmount Of Packets:\n");
+	printf("[?] > ");
+	scanf("%d", &amount);
+	fflush(stdin);
+
+  printf("\nTimeout:\n");
+	printf("[?] > ");
+	scanf("%d", &timeout);
+	fflush(stdin);
+//ASK USER FOR SERVER IP, PORT, AMOUNT
 
 //SOCKET SETUP
 	struct addrinfo internet_address_setup, *result_head, *result_item;
@@ -59,7 +83,7 @@ int main( int argc, char * argv[] ) {
 	internet_address_setup.ai_flags = AI_PASSIVE; // use ANY address for IPv4 and IPv6
 
 	int getaddrinfo_return;
-	getaddrinfo_return = getaddrinfo( "192.168.0.179", "24042", &internet_address_setup, &result_head );
+	getaddrinfo_return = getaddrinfo( server_ip, server_port, &internet_address_setup, &result_head );
 	if( getaddrinfo_return != 0 )
 	{
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
