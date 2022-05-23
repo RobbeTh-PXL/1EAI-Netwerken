@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <string.h>
+
 //PRINTS CONNECTION INFO
 void print_ip_address( struct addrinfo * ip ) {
 	void * ip_address;
@@ -101,7 +103,7 @@ int main( int argc, char * argv[] ) {
 		}
 		else
 		{
-			printf( "Sending to " );
+			printf( "[+] Sending to " );
 			print_ip_address( result_item );
 			internet_address_length = result_item->ai_addrlen;
 			internet_address = (struct sockaddr*) malloc( internet_address_length );
@@ -122,7 +124,8 @@ int main( int argc, char * argv[] ) {
 	int number_of_bytes_send = 0;
 
 	for (int i = 0; i < amount; i++) {
-		number_of_bytes_send = sendto(internet_socket, msg, sizeof(msg), 0, internet_address, internet_address_length);
+		printf("[+] Sending Message %d/%d\n", i+1, amount);
+		number_of_bytes_send = sendto(internet_socket, msg, strlen(msg), 0, internet_address, internet_address_length);
 		if(number_of_bytes_send == -1)
 		{
 			perror("sendto");
