@@ -154,7 +154,7 @@ int main( int argc, char * argv[] ) {
   }
 //FILE HANDLING
 
-//TIMEOUT
+//TIMEOUT SETUP
 //https://stackoverflow.com/questions/1824465/set-timeout-for-winsock-recvfrom
 	fd_set fds ;
 	int n ;
@@ -168,19 +168,7 @@ int main( int argc, char * argv[] ) {
 // Set up the struct timeval for the timeout.
 	tv.tv_sec = timeout;
 	tv.tv_usec = 0;
-
-// Wait until timeout or data received.
-	n = select ( internet_socket, &fds, NULL, NULL, &tv );
-	if ( n == 0) {
-  	printf("[-] Timeout..\n");
-		printf("[-] RECV: %d | EXPE: %d | LOSS: %d%%\n", i, amount, abs(((i - amount)/amount)*100));
-  	exit(5);
-	}
-	else if( n == -1 ) {
-  	printf("Error..\n");
-  	exit(6);
-	}
-//TIMEOUT
+//TIMEOUT SETUP
 
 //RECEIVE MSG
 	int number_of_bytes_received = 0;
@@ -192,6 +180,20 @@ int main( int argc, char * argv[] ) {
   printf("[+] Listening...\n");
   for (i = 0; i < amount; i++) {
     strcpy(buffer, "\0");
+
+		//TIMEOUT
+		n = select ( internet_socket, &fds, NULL, NULL, &tv );
+		if ( n == 0) {
+			printf("[-] Timeout..\n");
+			printf("[-] RECV: %d | EXPE: %d | LOSS: %d%%\n", i, amount, abs(((i - amount)/amount)*100));
+			exit(5);
+		}
+		else if( n == -1 ) {
+			printf("Error..\n");
+			exit(6);
+		}
+		//TIMEOUT
+
     number_of_bytes_received = 0;
     number_of_bytes_received = recvfrom( internet_socket, buffer, ( sizeof buffer ) - 1, 0, (struct sockaddr *) &client_ip_address, &client_ip_address_length );
   	if( number_of_bytes_received == -1 )
@@ -200,13 +202,16 @@ int main( int argc, char * argv[] ) {
   		perror( "recvfrom" );
   	}
   	buffer[number_of_bytes_received] = '\0';
+
     printf("\n[+] Receiving from ");
   	ss_print_ip_address( &client_ip_address );
     printf("[->] %s\n", buffer);
+
     printf("[+] Writing to output.csv...\n");
 		remove_spaces(buffer);
     fwrite(&buffer, strlen(buffer), 1, outFile);
     fwrite("\n", sizeof(char), 1, outFile);
+
     printf("[+] Packet %d/%d\n\n", i+1, amount);
   }
 //RECEIVE MSG
