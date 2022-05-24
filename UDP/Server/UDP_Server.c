@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 //PRINTS CONNECTION INFO
 void print_ip_address( unsigned short family, struct sockaddr * ip ) {
@@ -156,10 +157,9 @@ int main( int argc, char * argv[] ) {
 
 //TIMEOUT SETUP
 //https://stackoverflow.com/questions/1824465/set-timeout-for-winsock-recvfrom
-	fd_set fds ;
-	int n ;
-	struct timeval tv ;
-	int i = 0;
+	fd_set fds;
+	int n;
+	struct timeval tv;
 
 // Set up the file descriptor set.
 	FD_ZERO(&fds) ;
@@ -173,12 +173,13 @@ int main( int argc, char * argv[] ) {
 //RECEIVE MSG
 	int number_of_bytes_received = 0;
 	char buffer[1000];
+	clock_t begin_time;
 
   struct sockaddr_storage client_ip_address;
 	socklen_t client_ip_address_length = sizeof client_ip_address;
 
   printf("[+] Listening...\n");
-  for (i = 0; i < amount; i++) {
+  for (int i = 0; i < amount; i++) {
     strcpy(buffer, "\0");
 
 		//TIMEOUT
@@ -196,11 +197,16 @@ int main( int argc, char * argv[] ) {
 
     number_of_bytes_received = 0;
     number_of_bytes_received = recvfrom( internet_socket, buffer, ( sizeof buffer ) - 1, 0, (struct sockaddr *) &client_ip_address, &client_ip_address_length );
-  	if( number_of_bytes_received == -1 )
-  	{
+
+  	if( number_of_bytes_received == -1 ) {
   		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
   		perror( "recvfrom" );
   	}
+
+		if (i == 0) {
+			begin_time = clock();
+		}
+
   	buffer[number_of_bytes_received] = '\0';
 
     printf("\n[+] Receiving from ");
@@ -215,6 +221,12 @@ int main( int argc, char * argv[] ) {
     printf("[+] Packet %d/%d\n\n", i+1, amount);
   }
 //RECEIVE MSG
+
+//PRINTS ELAPSED TIME
+	clock_t end_time = clock();
+	float elapsed_time = (double)(end_time - begin_time) / CLOCKS_PER_SEC;
+	printf("\n[+] Elapsed Time: %.2f sec\n", elapsed_time);
+//PRINTS ELAPSED TIME
 
 //CLOSE CONNECTION & CLEANUP
   fclose(outFile);
