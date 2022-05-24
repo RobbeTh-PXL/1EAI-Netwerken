@@ -72,7 +72,7 @@ int main( int argc, char * argv[] ) {
 	scanf("%d", &amount);
 	fflush(stdin);
 
-  printf("\nTimeout:\n");
+  printf("\nTimeout (in seconds):\n");
 	printf("[?] > ");
 	scanf("%d", &timeout);
 	fflush(stdin);
@@ -116,7 +116,7 @@ int main( int argc, char * argv[] ) {
 			}
 			else
 			{
-				printf( "[+] Bind to " );
+				printf( "\n[+] Bind to " );
 				ai_print_ip_address( result_item );
 				break; //stop running through the linked list
 			}
@@ -142,6 +142,34 @@ int main( int argc, char * argv[] ) {
   }
 //FILE HANDLING
 
+//TIMEOUT
+//https://stackoverflow.com/questions/1824465/set-timeout-for-winsock-recvfrom
+	fd_set fds ;
+	int n ;
+	struct timeval tv ;
+	int i = 0;
+
+// Set up the file descriptor set.
+	FD_ZERO(&fds) ;
+	FD_SET(internet_socket, &fds) ;
+
+// Set up the struct timeval for the timeout.
+	tv.tv_sec = timeout;
+	tv.tv_usec = 0;
+
+// Wait until timeout or data received.
+	n = select ( internet_socket, &fds, NULL, NULL, &tv );
+	if ( n == 0) {
+  	printf("[-] Timeout..\n");
+		printf("[-] RECV: %d | EXPE: %d | LOSS: %d%%\n", i, amount, abs(((i - amount)/amount)*100));
+  	exit(5);
+	}
+	else if( n == -1 ) {
+  	printf("Error..\n");
+  	exit(6);
+	}
+//TIMEOUT
+
 //RECEIVE MSG
 	int number_of_bytes_received = 0;
 	char buffer[1000];
@@ -150,7 +178,7 @@ int main( int argc, char * argv[] ) {
 	socklen_t client_ip_address_length = sizeof client_ip_address;
 
   printf("[+] Listening...\n");
-  for (int i = 0; i < amount; i++) {
+  for (i = 0; i < amount; i++) {
     strcpy(buffer, "\0");
     number_of_bytes_received = 0;
     number_of_bytes_received = recvfrom( internet_socket, buffer, ( sizeof buffer ) - 1, 0, (struct sockaddr *) &client_ip_address, &client_ip_address_length );
