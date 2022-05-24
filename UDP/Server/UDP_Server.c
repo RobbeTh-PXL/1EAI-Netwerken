@@ -41,6 +41,18 @@ void ss_print_ip_address( struct sockaddr_storage * ip ) {
 }
 //PRINTS CONNECTION INFO
 
+//REMOVES SPACES
+//https://stackoverflow.com/questions/1726302/remove-spaces-from-a-string-in-c
+void remove_spaces(char* s) {
+    char* d = s;
+    do {
+        while (*d == ' ') {
+            ++d;
+        }
+    } while ((*s++ = *d++));
+}
+//REMOVES SPACES
+
 int main( int argc, char * argv[] ) {
 //START SOCKET API
 	WSADATA wsaData; //WSAData wsaData; //Could be different case
@@ -192,6 +204,7 @@ int main( int argc, char * argv[] ) {
   	ss_print_ip_address( &client_ip_address );
     printf("[->] %s\n", buffer);
     printf("[+] Writing to output.csv...\n");
+		remove_spaces(buffer);
     fwrite(&buffer, strlen(buffer), 1, outFile);
     fwrite("\n", sizeof(char), 1, outFile);
     printf("[+] Packet %d/%d\n\n", i+1, amount);
