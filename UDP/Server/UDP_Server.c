@@ -8,6 +8,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 //PRINTS CONNECTION INFO
 void print_ip_address( unsigned short family, struct sockaddr * ip ) {
@@ -41,6 +42,18 @@ void ss_print_ip_address( struct sockaddr_storage * ip ) {
 }
 //PRINTS CONNECTION INFO
 
+//REMOVES SPACES
+//https://stackoverflow.com/questions/1726302/remove-spaces-from-a-string-in-c
+void remove_spaces(char* s) {
+    char* d = s;
+    do {
+        while (*d == ' ') {
+            ++d;
+        }
+    } while ((*s++ = *d++));
+}
+//REMOVES SPACES
+
 int main( int argc, char * argv[] ) {
 //START SOCKET API
 	WSADATA wsaData; //WSAData wsaData; //Could be different case
@@ -72,7 +85,7 @@ int main( int argc, char * argv[] ) {
 	scanf("%d", &amount);
 	fflush(stdin);
 
-  printf("\nTimeout:\n");
+  printf("\nTimeout (in seconds):\n");
 	printf("[?] > ");
 	scanf("%d", &timeout);
 	fflush(stdin);
@@ -116,7 +129,7 @@ int main( int argc, char * argv[] ) {
 			}
 			else
 			{
-				printf( "[+] Bind to " );
+				printf( "\n[+] Bind to " );
 				ai_print_ip_address( result_item );
 				break; //stop running through the linked list
 			}
@@ -142,9 +155,25 @@ int main( int argc, char * argv[] ) {
   }
 //FILE HANDLING
 
+//TIMEOUT SETUP
+//https://stackoverflow.com/questions/1824465/set-timeout-for-winsock-recvfrom
+	fd_set fds;
+	int n;
+	struct timeval tv;
+
+// Set up the file descriptor set.
+	FD_ZERO(&fds) ;
+	FD_SET(internet_socket, &fds) ;
+
+// Set up the struct timeval for the timeout.
+	tv.tv_sec = timeout;
+	tv.tv_usec = 0;
+//TIMEOUT SETUP
+
 //RECEIVE MSG
 	int number_of_bytes_received = 0;
 	char buffer[1000];
+	clock_t begin_time;
 
   struct sockaddr_storage client_ip_address;
 	socklen_t client_ip_address_length = sizeof client_ip_address;
@@ -152,23 +181,52 @@ int main( int argc, char * argv[] ) {
   printf("[+] Listening...\n");
   for (int i = 0; i < amount; i++) {
     strcpy(buffer, "\0");
+
+		//TIMEOUT
+		n = select ( internet_socket, &fds, NULL, NULL, &tv );
+		if ( n == 0) {
+			printf("[-] Timeout..\n");
+			printf("[-] RECV: %d | EXPE: %d | LOSS: %d%%\n", i, amount, abs(((i - amount)/amount)*100));
+			exit(5);
+		}
+		else if( n == -1 ) {
+			printf("Error..\n");
+			exit(6);
+		}
+		//TIMEOUT
+
     number_of_bytes_received = 0;
     number_of_bytes_received = recvfrom( internet_socket, buffer, ( sizeof buffer ) - 1, 0, (struct sockaddr *) &client_ip_address, &client_ip_address_length );
-  	if( number_of_bytes_received == -1 )
-  	{
+
+  	if( number_of_bytes_received == -1 ) {
   		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
   		perror( "recvfrom" );
   	}
+
+		if (i == 0) {
+			begin_time = clock();
+		}
+
   	buffer[number_of_bytes_received] = '\0';
+
     printf("\n[+] Receiving from ");
   	ss_print_ip_address( &client_ip_address );
     printf("[->] %s\n", buffer);
+
     printf("[+] Writing to output.csv...\n");
+		remove_spaces(buffer);
     fwrite(&buffer, strlen(buffer), 1, outFile);
     fwrite("\n", sizeof(char), 1, outFile);
+
     printf("[+] Packet %d/%d\n\n", i+1, amount);
   }
 //RECEIVE MSG
+
+//PRINTS ELAPSED TIME
+	clock_t end_time = clock();
+	float elapsed_time = (double)(end_time - begin_time) / CLOCKS_PER_SEC;
+	printf("\n[+] Elapsed Time: %.2f sec\n", elapsed_time);
+//PRINTS ELAPSED TIME
 
 //CLOSE CONNECTION & CLEANUP
   fclose(outFile);
