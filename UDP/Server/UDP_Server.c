@@ -166,7 +166,7 @@ int main( int argc, char * argv[] ) {
 	FD_SET(internet_socket, &fds) ;
 
 // Set up the struct timeval for the timeout.
-	tv.tv_sec = timeout;
+	tv.tv_sec = timeout; //tv.tv_sec SECONDS
 	tv.tv_usec = 0;
 //TIMEOUT SETUP
 
@@ -211,7 +211,7 @@ int main( int argc, char * argv[] ) {
 
     printf("\n[+] Receiving from ");
   	ss_print_ip_address( &client_ip_address );
-    printf("[->] %s\n", buffer);
+    printf("[>] %s\n", buffer);
 
     printf("[+] Writing to output.csv...\n");
 		remove_spaces(buffer);
@@ -227,6 +227,10 @@ int main( int argc, char * argv[] ) {
 	float elapsed_time = (double)(end_time - begin_time) / CLOCKS_PER_SEC;
 	printf("\n[+] Elapsed Time: %.2f sec\n", elapsed_time);
 //PRINTS ELAPSED TIME
+
+//PRINTS PACKETLOSS
+	printf("[+] RECV: %d | EXPE: %d | LOSS: %d%%\n", i, amount, abs(((i - amount)/amount)*100));
+//PRINTS PACKETLOSS
 
 //CLOSE CONNECTION & CLEANUP
   fclose(outFile);
