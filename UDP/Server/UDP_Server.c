@@ -280,7 +280,7 @@ int main( int argc, char * argv[] ) {
 	printf("\n");
 
 	sprintf(tmp, "[+] Elapsed Time: %.2f sec\n", elapsed_time);
-	printf("%s\n", tmp);
+	printf("%s", tmp);
 	fwrite(&tmp, strlen(tmp), 1, statsFile);
 
 	sprintf(tmp, "[+] RECV: %d | EXPE: %d | LOSS: %d%%\n", i, amount, abs(((i - amount)/amount)*100));
