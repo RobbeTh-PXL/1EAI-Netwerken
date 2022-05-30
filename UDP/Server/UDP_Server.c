@@ -176,11 +176,19 @@ int main( int argc, char * argv[] ) {
 
 //FILE HANDLING
   FILE *outFile = NULL;
+	FILE *statsFile = NULL;
 
   printf("[+] Creating output.csv...\n");
-  outFile = fopen("output.csv", "w");
+  outFile = fopen("packet_data.csv", "w");
   if (outFile == NULL) {
-    printf("\n[-] Output file could not be created!\n");
+    printf("\n[-] Could not create packet_data.csv!\n");
+    exit(4);
+  }
+
+	printf("[+] Creating statistics.txt...\n");
+  statsFile = fopen("statistics.txt", "w");
+  if (statsFile == NULL) {
+    printf("\n[-] Could not create statistics.txt!\n");
     exit(4);
   }
 //FILE HANDLING
@@ -264,19 +272,29 @@ int main( int argc, char * argv[] ) {
 //ELAPSED TIME
 	clock_t end_time = clock();
 	float elapsed_time = (double)(end_time - begin_time) / CLOCKS_PER_SEC;
-	printf("\n[+] Elapsed Time: %.2f sec\n", elapsed_time);
 //ELAPSED TIME
 
-//PRINT PACKETLOSS
-	printf("[+] RECV: %d | EXPE: %d | LOSS: %d%%\n", i, amount, abs(((i - amount)/amount)*100));
-//PRINT PACKETLOSS
+//WRITE STATSFILE
+	char tmp[100] = "\0";
 
-//PRINT PACKET DATA
-	printf("[+] MIN: %f | MAX: %f | AVG: %f\n", min, max, (avg/i));
-//PRINT PACKET DATA
+	printf("\n");
+
+	sprintf(tmp, "[+] Elapsed Time: %.2f sec\n", elapsed_time);
+	printf("%s\n", tmp);
+	fwrite(&tmp, strlen(tmp), 1, statsFile);
+
+	sprintf(tmp, "[+] RECV: %d | EXPE: %d | LOSS: %d%%\n", i, amount, abs(((i - amount)/amount)*100));
+	printf("%s", tmp);
+	fwrite(&tmp, strlen(tmp), 1, statsFile);
+
+	sprintf(tmp, "[+] MIN: %f | MAX: %f | AVG: %f\n", min, max, (avg/i));
+	printf("%s", tmp);
+	fwrite(&tmp, strlen(tmp), 1, statsFile);
+//WRITE STATSFILE
 
 //CLOSE CONNECTION & CLEANUP
   fclose(outFile);
+	fclose(statsFile);
 	close( internet_socket );
 	WSACleanup();
 //CLOSE CONNECTION & CLEANUP
