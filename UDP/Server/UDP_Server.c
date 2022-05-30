@@ -54,6 +54,36 @@ void remove_spaces(char* s) {
 }
 //REMOVES SPACES
 
+//DISSECT PACKET DATA
+void dissect(double* min, double* max, double* avg, char* buffer) {
+	int count = 0;
+	int j = 0;
+	char tmp[1000] = "\0";
+	double data = 0.0;
+
+	for (int i = 0; count < 3; i++) {
+		if (buffer[i] == ',') {
+			++count;
+		}
+		if (count == 2 && buffer[i] != ',') {
+			tmp[j] = buffer[i];
+			++j;
+		}
+	}
+	tmp[j] = '\0';
+
+	data = strtod(tmp, NULL);
+	printf("[+] Extraced %f\n", data);
+	if (data < *min || *min == 0.0) {
+		*min = data;
+	}
+	if (data > *max) {
+		*max = data;
+	}
+	*avg += data;
+}
+//DISSECT PACKET DATA
+
 int main( int argc, char * argv[] ) {
 //START SOCKET API
 	WSADATA wsaData; //WSAData wsaData; //Could be different case
@@ -146,11 +176,19 @@ int main( int argc, char * argv[] ) {
 
 //FILE HANDLING
   FILE *outFile = NULL;
+	FILE *statsFile = NULL;
 
   printf("[+] Creating output.csv...\n");
-  outFile = fopen("output.csv", "w");
+  outFile = fopen("packet_data.csv", "w");
   if (outFile == NULL) {
-    printf("\n[-] Output file could not be created!\n");
+    printf("\n[-] Could not create packet_data.csv!\n");
+    exit(4);
+  }
+
+	printf("[+] Creating statistics.txt...\n");
+  statsFile = fopen("statistics.txt", "w");
+  if (statsFile == NULL) {
+    printf("\n[-] Could not create statistics.txt!\n");
     exit(4);
   }
 //FILE HANDLING
@@ -166,31 +204,39 @@ int main( int argc, char * argv[] ) {
 	FD_SET(internet_socket, &fds) ;
 
 // Set up the struct timeval for the timeout.
-	tv.tv_sec = timeout;
+	tv.tv_sec = timeout; //tv.tv_sec SECONDS
 	tv.tv_usec = 0;
 //TIMEOUT SETUP
 
+//PACKET DATA
+	double min = 0.0;
+	double max = 0.0;
+	double avg = 0.0;
+//PACKET DATA
+
 //RECEIVE MSG
 	int number_of_bytes_received = 0;
-	char buffer[1000];
+	char buffer[1000] = "\0";
 	clock_t begin_time;
+	int i;
 
   struct sockaddr_storage client_ip_address;
 	socklen_t client_ip_address_length = sizeof client_ip_address;
 
   printf("[+] Listening...\n");
-  for (int i = 0; i < amount; i++) {
+  for (i = 0; i < amount; i++) {
     strcpy(buffer, "\0");
 
 		//TIMEOUT
 		n = select ( internet_socket, &fds, NULL, NULL, &tv );
 		if ( n == 0) {
-			printf("[-] Timeout..\n");
+			printf("[-] Timeout\n");
 			printf("[-] RECV: %d | EXPE: %d | LOSS: %d%%\n", i, amount, abs(((i - amount)/amount)*100));
+			printf("[+] MIN: %f | MAX: %f | AVG: %f\n", min, max, (avg/i));
 			exit(5);
 		}
 		else if( n == -1 ) {
-			printf("Error..\n");
+			printf("[-]Error in timeout!\n");
 			exit(6);
 		}
 		//TIMEOUT
@@ -211,10 +257,11 @@ int main( int argc, char * argv[] ) {
 
     printf("\n[+] Receiving from ");
   	ss_print_ip_address( &client_ip_address );
-    printf("[->] %s\n", buffer);
+    printf("[>] %s\n", buffer);
 
     printf("[+] Writing to output.csv...\n");
 		remove_spaces(buffer);
+		dissect(&min, &max, &avg, buffer);
     fwrite(&buffer, strlen(buffer), 1, outFile);
     fwrite("\n", sizeof(char), 1, outFile);
 
@@ -222,14 +269,32 @@ int main( int argc, char * argv[] ) {
   }
 //RECEIVE MSG
 
-//PRINTS ELAPSED TIME
+//ELAPSED TIME
 	clock_t end_time = clock();
 	float elapsed_time = (double)(end_time - begin_time) / CLOCKS_PER_SEC;
-	printf("\n[+] Elapsed Time: %.2f sec\n", elapsed_time);
-//PRINTS ELAPSED TIME
+//ELAPSED TIME
+
+//WRITE STATSFILE
+	char tmp[100] = "\0";
+
+	printf("\n");
+
+	sprintf(tmp, "[+] Elapsed Time: %.2f sec\n", elapsed_time);
+	printf("%s", tmp);
+	fwrite(&tmp, strlen(tmp), 1, statsFile);
+
+	sprintf(tmp, "[+] RECV: %d | EXPE: %d | LOSS: %d%%\n", i, amount, abs(((i - amount)/amount)*100));
+	printf("%s", tmp);
+	fwrite(&tmp, strlen(tmp), 1, statsFile);
+
+	sprintf(tmp, "[+] MIN: %f | MAX: %f | AVG: %f\n", min, max, (avg/i));
+	printf("%s", tmp);
+	fwrite(&tmp, strlen(tmp), 1, statsFile);
+//WRITE STATSFILE
 
 //CLOSE CONNECTION & CLEANUP
   fclose(outFile);
+	fclose(statsFile);
 	close( internet_socket );
 	WSACleanup();
 //CLOSE CONNECTION & CLEANUP
