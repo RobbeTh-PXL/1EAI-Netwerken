@@ -9,6 +9,8 @@
 #include <pthread.h>
 #include <string.h>
 
+int i = 0;
+
 //PRINT CONNECTION INFO
 void print_ip_address( unsigned short family, struct sockaddr * ip ) {
 	void * ip_address;
@@ -69,10 +71,14 @@ void *data_recv(void *client_socket) {
 	}
   close(recv_socket);
   printf("[+] Client Left!\n");
+  --i;
   pthread_exit(NULL);
   return NULL; //To make compiler happy
 }
 //RECEIVE DATA
+
+//SEND DATA
+//SEND DATA
 
 int main( int argc, char * argv[] )
 {
@@ -167,7 +173,6 @@ int main( int argc, char * argv[] )
 //ACCEPT CLIENT CONNECTION & CREATE THREADS
   struct sockaddr_storage client_ip_address;
   int client_socket = 0;
-  int i = 0;
   pthread_t recv_threads[30];
 
   while (1) {
@@ -183,8 +188,10 @@ int main( int argc, char * argv[] )
   	printf( "Got connection from " );
   	ss_print_ip_address( &client_ip_address );
 
-    printf("[+] Creating thread... (id: %d)\n", i);
-    pthread_create(&recv_threads[i++], NULL, data_recv, (void *) (intptr_t) client_socket);
+    printf("[+] Creating thread receive... (id: %d)\n", i);
+    if (pthread_create(&recv_threads[i++], NULL, data_recv, (void *) (intptr_t) client_socket) != 0) {
+      printf("[-] Error Creating Thread Receive!\n");
+    }
   }
 //ACCEPT CLIENT CONNECTION  & CREATE THREADS
 
