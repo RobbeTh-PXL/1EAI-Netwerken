@@ -9,6 +9,8 @@
 #include <string.h>
 #include <pthread.h>
 
+int thread_stop = 0;
+
 //PRINT CONNECTION INFO
 void print_ip_address( struct addrinfo * ip ) {
 	void * ip_address;
@@ -32,6 +34,22 @@ void print_ip_address( struct addrinfo * ip ) {
 	printf( "%s -> %s\n", ip_version, ip_string );
 }
 //PRINT CONNECTION INFO
+
+void *data_recv(void *server_socket) {
+  int recv_socket = (intptr_t) server_socket;
+  int number_of_bytes_received = 0;
+  char buffer[1000] = "\0";
+
+  while (thread_stop == 0) {
+    number_of_bytes_received = recv(recv_socket, buffer, sizeof(buffer), 0);
+    if (number_of_bytes_received == -1) {
+      perror("recv");
+    }
+    printf("[*] %s\n", buffer);
+  }
+  pthread_exit(NULL);
+  return NULL; //To make compiler happy
+}
 
 int main( int argc, char * argv[] )
 {
@@ -117,6 +135,15 @@ int main( int argc, char * argv[] )
 	}
 	freeaddrinfo( result_head ); //free the linked list
 //CREATE SOCKET
+
+//CREATE RECV_THREAD
+  pthread_t recv_thread;
+
+  if (pthread_create(&recv_thread, NULL, data_recv, (void *) (intptr_t) internet_socket) != 0) {
+    printf("[-] Error creating recv_thread!\n");
+    return 0;
+  }
+//CREATE RECV_THREAD
 
 //SEND DATA
 	int number_of_bytes_send = 0;
