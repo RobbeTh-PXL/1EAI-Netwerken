@@ -46,10 +46,10 @@ void *data_recv(void *server_socket) {
     if (number_of_bytes_received == -1) {
       perror("recv");
     }
-    if (strlen(buffer)>0) {
-      printf("\n[*] %s\n", buffer);
-    }
     buffer[number_of_bytes_received] = '\0';
+    if (strlen(buffer)>0) {
+      printf("[*] %s\n", buffer);
+    }
   }
   pthread_exit(NULL);
   return NULL; //To make compiler happy
@@ -159,6 +159,12 @@ int main( int argc, char * argv[] )
     fflush(stdin);
     gets(data_send);
     if (strcmp(data_send, "/exit") == 0) {
+      number_of_bytes_send = send( server_socket, data_send, strlen(data_send), 0 );
+    	if( number_of_bytes_send == -1 )
+    	{
+    		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
+    		perror( "send" );
+    	}
       break;
     }
     strcat(data_send, "\n");
@@ -174,8 +180,8 @@ int main( int argc, char * argv[] )
 //SHUTDOWN
 	int shutdown_return;
   thread_stop = 1;
-
-	shutdown_return = shutdown( server_socket, SD_SEND ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
+  pthread_cancel(recv_thread);
+	shutdown_return = shutdown( server_socket, SD_RECEIVE ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
 	if( shutdown_return == -1 )
 	{
 		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
