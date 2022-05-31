@@ -35,6 +35,7 @@ void print_ip_address( struct addrinfo * ip ) {
 }
 //PRINT CONNECTION INFO
 
+//RECEIVE DATA
 void *data_recv(void *server_socket) {
   int recv_socket = (intptr_t) server_socket;
   int number_of_bytes_received = 0;
@@ -53,6 +54,7 @@ void *data_recv(void *server_socket) {
   pthread_exit(NULL);
   return NULL; //To make compiler happy
 }
+//RECEIVE DATA
 
 int main( int argc, char * argv[] )
 {
