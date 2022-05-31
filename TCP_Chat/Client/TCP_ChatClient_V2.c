@@ -6,8 +6,11 @@
 #include <stdio.h>
 #include <unistd.h>
 
-void print_ip_address( struct addrinfo * ip )
-{
+#include <string.h>
+#include <pthread.h>
+
+//PRINT CONNECTION INFO
+void print_ip_address( struct addrinfo * ip ) {
 	void * ip_address;
 	char * ip_version;
 	char ip_string[INET6_ADDRSTRLEN];
@@ -28,32 +31,56 @@ void print_ip_address( struct addrinfo * ip )
 	inet_ntop( ip->ai_family, ip_address, ip_string, sizeof ip_string );
 	printf( "%s -> %s\n", ip_version, ip_string );
 }
+//PRINT CONNECTION INFO
 
 int main( int argc, char * argv[] )
 {
+//START WINSOCK API
 	WSADATA wsaData; //WSAData wsaData; //Could be different case
 	if( WSAStartup( MAKEWORD(2,0), &wsaData ) != 0 ) // MAKEWORD(1,1) for Winsock 1.1, MAKEWORD(2,0) for Winsock 2.0:
 	{
 		fprintf( stderr, "WSAStartup failed.\n" );
 		exit( 1 );
 	}
+//START WINSOCK API
 
+//ASK USER FOR SERVER INFO
+  char server_ip[45] = "\0";
+  char server_port[5] = "\0";
+
+  printf("SERVER IP:\n");
+  printf("[>] ");
+  scanf("%s", server_ip);
+  fflush(stdin);
+
+  printf("\nSERVER PORT:\n");
+  printf("[>] ");
+  scanf("%s", server_port);
+  fflush(stdin);
+//ASK USER FOR SERVER INFO
+
+//SETUP SOCKET
 	struct addrinfo internet_address_setup, *result_head, *result_item;
 	memset( &internet_address_setup, 0, sizeof internet_address_setup );
 	internet_address_setup.ai_family = AF_UNSPEC; // AF_INET or AF_INET6 to force version
 	internet_address_setup.ai_socktype = SOCK_STREAM;
 
 	int getaddrinfo_return;
-	getaddrinfo_return = getaddrinfo( "localhost.pxl-ea-ict.be", "24042", &internet_address_setup, &result_head );
+	getaddrinfo_return = getaddrinfo( server_ip, server_port, &internet_address_setup, &result_head );
 	if( getaddrinfo_return != 0 )
 	{
 		fprintf( stderr, "getaddrinfo: %s\n", gai_strerror( getaddrinfo_return ) );
 		exit( 2 );
 	}
+//SETUP SOCKET
 
+/* NOT USED
 	struct sockaddr * internet_address;
 	size_t internet_address_length;
-	int internet_socket;
+*/
+
+//CREATE SOCKET
+  int internet_socket;
 
 	result_item = result_head; //take first of the linked list
 	while( result_item != NULL ) //while the pointer is valid
@@ -89,15 +116,29 @@ int main( int argc, char * argv[] )
 		exit( 4 );
 	}
 	freeaddrinfo( result_head ); //free the linked list
+//CREATE SOCKET
 
+//SEND DATA
 	int number_of_bytes_send = 0;
-	number_of_bytes_send = send( internet_socket, "Hello TCP world!", 16, 0 );
-	if( number_of_bytes_send == -1 )
-	{
-		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
-		perror( "send" );
-	}
+  char data_send[1000] = "\0";
 
+  while (1) {
+    printf("[>] ");
+    scanf("%s", data_send);
+    fflush(stdin);
+    if (strcmp(data_send, "/exit") == 0) {
+      break;
+    }
+    number_of_bytes_send = send( internet_socket, data_send, strlen(data_send), 0 );
+  	if( number_of_bytes_send == -1 )
+  	{
+  		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
+  		perror( "send" );
+  	}
+  }
+//SEND DATA
+
+//SHUTDOWN
 	int shutdown_return;
 	shutdown_return = shutdown( internet_socket, SD_SEND ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
 	if( shutdown_return == -1 )
@@ -107,8 +148,8 @@ int main( int argc, char * argv[] )
 	}
 
 	close( internet_socket );
-
 	WSACleanup();
+//SHUTDOWN
 
 	return 0;
 }
