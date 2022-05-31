@@ -6,6 +6,9 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#include <pthread.h>
+#include <string.h>
+
 //PRINT CONNECTION INFO
 void print_ip_address( unsigned short family, struct sockaddr * ip ) {
 	void * ip_address;
@@ -38,6 +41,39 @@ void ss_print_ip_address( struct sockaddr_storage * ip ) {
 }
 //PRINT CONNECTION INFO
 
+//RECEIVE DATA
+void *data_recv(void *client_socket) {
+  int recv_socket = (intptr_t) client_socket;
+  int number_of_bytes_received = 0;
+  int shutdown_return = 0;
+  char buffer[1000] = "\0";
+
+  while (1) {
+    number_of_bytes_received = recv(recv_socket, buffer, sizeof(buffer), 0);
+    if (number_of_bytes_received == -1) {
+      perror("recv");
+    }
+    buffer[number_of_bytes_received] = '\0';
+    if (strcmp(buffer, "/exit") == 0) {
+      break;
+    }
+    if (strlen(buffer)>0) {
+      printf("[*] %s", buffer);
+    }
+  }
+  shutdown_return = shutdown(recv_socket, SD_SEND); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
+	if(shutdown_return == -1)
+	{
+		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
+		perror( "shutdown" );
+	}
+  close(recv_socket);
+  printf("[+] Client Left!\n");
+  pthread_exit(NULL);
+  return NULL; //To make compiler happy
+}
+//RECEIVE DATA
+
 int main( int argc, char * argv[] )
 {
 //START WINSOCK API
@@ -53,9 +89,9 @@ int main( int argc, char * argv[] )
   char server_ip[45] = "\0";
   char server_port[5] = "\0";
 
-  printf("SERVER IP:\n");
-  printf("[>] ");
-  scanf("%s", server_ip);
+  //printf("SERVER IP:\n");
+  //printf("[>] ");
+  //scanf("%s", server_ip);
   fflush(stdin);
 
   printf("\nSERVER PORT:\n");
@@ -63,6 +99,7 @@ int main( int argc, char * argv[] )
   scanf("%s", server_port);
   fflush(stdin);
 //ASK USER FOR (HOST) SERVER INFO
+
 
 //SETUP SOCKET
 	struct addrinfo internet_address_setup, *result_head, *result_item;
@@ -127,9 +164,12 @@ int main( int argc, char * argv[] )
 	freeaddrinfo( result_head ); //free the linked list
 //CREATE SOCKET
 
-//ACCEPT CLIENT CONNECTION
+//ACCEPT CLIENT CONNECTION & CREATE THREADS
   struct sockaddr_storage client_ip_address;
   int client_socket = 0;
+  int i = 0;
+  pthread_t recv_threads[30];
+
   while (1) {
     socklen_t client_ip_address_length = sizeof client_ip_address;
   	client_socket = accept( internet_socket, (struct sockaddr *) &client_ip_address, &client_ip_address_length );
@@ -142,21 +182,11 @@ int main( int argc, char * argv[] )
   	}
   	printf( "Got connection from " );
   	ss_print_ip_address( &client_ip_address );
-  }
-//ACCEPT CLIENT CONNECTION
 
-//RECEIVE DATA
-	int number_of_bytes_received = 0;
-	char buffer[1000];
-	number_of_bytes_received = recv( client_socket, buffer, ( sizeof buffer ) - 1, 0 );
-	if( number_of_bytes_received == -1 )
-	{
-		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
-		perror( "recv" );
-	}
-	buffer[number_of_bytes_received] = '\0';
-	printf( "Got %s\n", buffer );
-//RECEIVE DATA
+    printf("[+] Creating thread... (id: %d)\n", i);
+    pthread_create(&recv_threads[i++], NULL, data_recv, (void *) (intptr_t) client_socket);
+  }
+//ACCEPT CLIENT CONNECTION  & CREATE THREADS
 
 //SHUTDONW
 	int shutdown_return;
