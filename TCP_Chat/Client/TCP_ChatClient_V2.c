@@ -45,7 +45,10 @@ void *data_recv(void *server_socket) {
     if (number_of_bytes_received == -1) {
       perror("recv");
     }
-    printf("[*] %s\n", buffer);
+    if (strlen(buffer)>0) {
+      printf("\n[*] %s\n", buffer);
+    }
+    buffer[number_of_bytes_received] = '\0';
   }
   pthread_exit(NULL);
   return NULL; //To make compiler happy
@@ -98,13 +101,13 @@ int main( int argc, char * argv[] )
 */
 
 //CREATE SOCKET
-  int internet_socket;
+  int server_socket;
 
 	result_item = result_head; //take first of the linked list
 	while( result_item != NULL ) //while the pointer is valid
 	{
-		internet_socket = socket( result_item->ai_family, result_item->ai_socktype, result_item->ai_protocol );
-		if( internet_socket == -1 )
+		server_socket = socket( result_item->ai_family, result_item->ai_socktype, result_item->ai_protocol );
+		if( server_socket == -1 )
 		{
 			perror( "socket" );
 		}
@@ -114,11 +117,11 @@ int main( int argc, char * argv[] )
 			print_ip_address( result_item );
 
 			int connect_return;
-			connect_return = connect( internet_socket, result_item->ai_addr, result_item->ai_addrlen );
+			connect_return = connect( server_socket, result_item->ai_addr, result_item->ai_addrlen );
 			if( connect_return == -1 )
 			{
 				perror( "connect" );
-				close( internet_socket );
+				close( server_socket );
 			}
 			else
 			{
@@ -139,7 +142,7 @@ int main( int argc, char * argv[] )
 //CREATE RECV_THREAD
   pthread_t recv_thread;
 
-  if (pthread_create(&recv_thread, NULL, data_recv, (void *) (intptr_t) internet_socket) != 0) {
+  if (pthread_create(&recv_thread, NULL, data_recv, (void *) (intptr_t) server_socket) != 0) {
     printf("[-] Error creating recv_thread!\n");
     return 0;
   }
@@ -151,12 +154,13 @@ int main( int argc, char * argv[] )
 
   while (1) {
     printf("[>] ");
-    scanf("%s", data_send);
     fflush(stdin);
+    gets(data_send);
     if (strcmp(data_send, "/exit") == 0) {
       break;
     }
-    number_of_bytes_send = send( internet_socket, data_send, strlen(data_send), 0 );
+    strcat(data_send, "\n");
+    number_of_bytes_send = send( server_socket, data_send, strlen(data_send), 0 );
   	if( number_of_bytes_send == -1 )
   	{
   		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
@@ -167,14 +171,17 @@ int main( int argc, char * argv[] )
 
 //SHUTDOWN
 	int shutdown_return;
-	shutdown_return = shutdown( internet_socket, SD_SEND ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
+  thread_stop = 1;
+
+	shutdown_return = shutdown( server_socket, SD_SEND ); //Shutdown Send == SD_SEND ; Receive == SD_RECEIVE ; Send/Receive == SD_BOTH ; https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable --> Linux : Shutdown Send == SHUT_WR ; Receive == SHUT_RD ; Send/Receive == SHUT_RDWR
 	if( shutdown_return == -1 )
 	{
 		printf( "errno = %d\n", WSAGetLastError() ); //https://docs.microsoft.com/en-us/windows/win32/winsock/windows-sockets-error-codes-2
 		perror( "shutdown" );
 	}
 
-	close( internet_socket );
+	close( server_socket );
+  pthread_join(recv_thread, NULL);
 	WSACleanup();
 //SHUTDOWN
 
